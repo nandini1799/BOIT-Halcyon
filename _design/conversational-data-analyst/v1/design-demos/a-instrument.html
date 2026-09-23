@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" data-direction="instrument">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — Direction A · Instrument</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  DIRECTION A · "Instrument"
+  Logic 1 —  seconds roulette. date +%S = 35 → 35 % 20 + 1 = #16
+  Web style #16 · Terminal-Core Soft-Futurism (Cursor × Teenage Engineering).
+
+  Form comes from content: a bank's own printed ledger. Monospace is the protagonist
+  because every figure in this product is a figure in a column; the rule line is the
+  only divider used anywhere; nothing has a shadow because ink does not glow.
+-->
+<style>
+  :root{
+    /* ---- tokens · Direction A ---- */
+    --bg:            #0B0D14;
+    --bg-sunk:       #080A10;
+    --panel:         #11141D;
+    --panel-hi:      #161A25;
+    --rule:          #1E2330;
+    --rule-strong:   #2A3040;
+    --ink:           #EDEAE4;   /* warm white, 14.8:1 on --bg */
+    --ink-mid:       #A8AEBD;   /* 7.6:1  */
+    --ink-low:       #767D8E;   /* 4.6:1  — floor, labels only */
+    --amber:         #FFB454;   /* the single accent. means: this is the machine talking */
+    --amber-sunk:    #3A2A12;
+    --teal:          #5AC8B0;
+    --violet:        #9B8CFF;
+    --rose:          #FF7A7A;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber-sunk); color:var(--ink)}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+
+  /* ---------------------------------------------------------- switcher chrome */
+  .switcher{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:2px;
+    padding:8px 16px; background:var(--bg-sunk);
+    border-bottom:1px solid var(--rule);
+    font-family:var(--mono); font-size:11px;
+  }
+  .switcher__tag{
+    color:var(--amber); letter-spacing:.08em; text-transform:uppercase;
+    margin-right:14px; font-weight:700;
+  }
+  .switcher__hint{margin-left:auto; color:var(--ink-low)}
+  .sbtn{
+    appearance:none; border:1px solid transparent; background:none;
+    color:var(--ink-low); font:inherit; padding:5px 10px; cursor:pointer;
+  }
+  .sbtn:hover{color:var(--ink-mid); background:var(--panel)}
+  .sbtn.is-active{color:var(--bg); background:var(--amber); font-weight:700}
+
+  /* -------------------------------------------------------------- app skeleton */
+  /* Skeleton A: fixed left schema rail + single transcript column + docked input.  */
+  .app{display:grid; grid-template-columns:232px 1fr; min-height:calc(100vh - 37px)}
+
+  .rail{
+    border-right:1px solid var(--rule); background:var(--bg-sunk);
+    padding:18px 0 24px; display:flex; flex-direction:column; gap:22px;
+  }
+  .rail__brand{padding:0 16px}
+  .wordmark{
+    font-family:var(--mono); font-size:16px; font-weight:700; letter-spacing:-.02em;
+    display:flex; align-items:baseline; gap:7px;
+  }
+  .wordmark b{color:var(--amber); font-weight:700}
+  .wordmark span{color:var(--ink-low); font-size:10px; letter-spacing:.14em; text-transform:uppercase}
+  .rail__sub{
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-low);
+    margin-top:5px; letter-spacing:.02em;
+  }
+  .rail__head{
+    font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-low); padding:0 16px 8px; border-bottom:1px solid var(--rule); margin-bottom:2px;
+  }
+  .tbl{
+    display:block; width:100%; text-align:left; background:none; border:0;
+    border-left:2px solid transparent; padding:7px 16px; cursor:default;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-mid);
+  }
+  .tbl:hover{background:var(--panel)}
+  .tbl.is-used{border-left-color:var(--amber); color:var(--ink); background:var(--panel)}
+  .tbl__row{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+  .tbl__n{color:var(--ink-low); font-size:10px}
+  .tbl__cols{color:var(--ink-low); font-size:10px; margin-top:2px; line-height:1.35}
+  .rail__foot{
+    margin-top:auto; padding:12px 16px 0; border-top:1px solid var(--rule);
+    font-family:var(--mono); font-size:10px; color:var(--ink-low); line-height:1.6;
+  }
+  .ro{display:inline-flex; align-items:center; gap:6px; color:var(--teal)}
+  .ro::before{content:''; width:5px; height:5px; background:var(--teal)}
+
+  /* --------------------------------------------------------------- main column */
+  .main{display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    display:flex; align-items:center; gap:14px; padding:12px 28px;
+    border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:11px; color:var(--ink-low);
+  }
+  .topbar .sep{color:var(--rule-strong)}
+  .scroll{flex:1; overflow:auto; padding:26px 28px 8px}
+  .thread{max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:20px}
+
+  /* ------------------------------------------------------------------ question */
+  .q{display:flex; gap:12px; align-items:baseline; font-family:var(--mono)}
+  .q__caret{color:var(--amber); font-weight:700; flex:none}
+  .q__text{color:var(--ink); font-size:14.5px}
+
+  /* ------------------------------------------------- answer = a ledger printout */
+  .sheet{border:1px solid var(--rule); background:var(--panel)}
+  .sheet__head{
+    display:flex; align-items:center; gap:10px; padding:9px 14px;
+    border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:10.5px; color:var(--ink-low);
+  }
+  .sheet__head strong{color:var(--ink-mid); font-weight:500}
+  .sheet__body{padding:16px 18px}
+  .answer{font-size:14.5px; line-height:1.62; color:var(--ink); margin:0}
+  .answer em{font-style:normal; color:var(--amber); font-family:var(--mono)}
+
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--rule)}
+  .kpi{padding:14px 18px; border-right:1px solid var(--rule)}
+  .kpi:last-child{border-right:0}
+  .kpi__l{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-low)}
+  .kpi__v{font-family:var(--mono); font-size:25px; font-weight:700; margin-top:6px; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .kpi__d{font-family:var(--mono); font-size:10.5px; color:var(--ink-mid); margin-top:3px; display:flex; align-items:center; gap:6px}
+  .up{color:var(--teal)} .down{color:var(--rose)}
+
+  .chart{padding:14px 10px 6px; border-top:1px solid var(--rule)}
+  .chart__cap{
+    display:flex; justify-content:space-between; align-items:baseline; padding:0 8px 8px;
+    font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-low);
+  }
+  .legend{display:flex; gap:14px; flex-wrap:wrap; padding:8px 18px 2px; font-family:var(--mono); font-size:10.5px; color:var(--ink-mid)}
+  .legend i{display:inline-block; width:9px; height:9px; margin-right:6px; vertical-align:-1px}
+
+  table.data{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px}
+  table.data th{
+    text-align:left; font-weight:500; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-low); padding:9px 14px; border-bottom:1px solid var(--rule-strong); white-space:nowrap;
+  }
+  table.data td{padding:8px 14px; border-bottom:1px solid var(--rule); color:var(--ink-mid)}
+  table.data tr:last-child td{border-bottom:0}
+  table.data tr:hover td{background:var(--panel-hi); color:var(--ink)}
+  .num{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink)!important}
+  .rank{color:var(--ink-low)!important; text-align:right}
+
+  /* ------------------------------------------------------- "show the work" drawer */
+  .work{border-top:1px solid var(--rule)}
+  .work__toggle{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 14px;
+    background:none; border:0; cursor:pointer; text-align:left;
+    font-family:var(--mono); font-size:11px; color:var(--ink-mid);
+  }
+  .work__toggle:hover{background:var(--panel-hi); color:var(--ink)}
+  .work__toggle .chev{color:var(--ink-low); transition:transform .15s ease}
+  .work__toggle.is-open .chev{transform:rotate(90deg)}
+  .work__spacer{margin-left:auto}
+  .verdict::before{content:''; width:5px; height:5px; background:currentColor; flex:none}
+  .verdict{
+    display:inline-flex; align-items:center; gap:6px; padding:2px 8px;
+    font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    background:rgba(90,200,176,.1); color:var(--teal); border:1px solid rgba(90,200,176,.3);
+  }
+  .verdict.is-bad{background:rgba(255,122,122,.1); color:var(--rose); border-color:rgba(255,122,122,.35)}
+  .work__body{border-top:1px solid var(--rule); background:var(--bg-sunk)}
+  .work__grid{display:grid; grid-template-columns:1fr 268px}
+  .sqlbox{border-right:1px solid var(--rule); min-width:0}
+  .sqlbox__bar{
+    display:flex; align-items:center; gap:8px; padding:8px 14px; border-bottom:1px solid var(--rule);
+    font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-low);
+  }
+  pre.sql{
+    margin:0; padding:14px; overflow:auto; font-family:var(--mono); font-size:11.5px; line-height:1.65;
+    color:var(--ink-mid); tab-size:2;
+  }
+  .k{color:var(--violet)} .s{color:var(--teal)} .f{color:var(--amber)} .c{color:var(--ink-low)}
+  .checks{padding:10px 14px}
+  .checks__h{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-low); margin-bottom:9px}
+  .chk{display:flex; gap:9px; align-items:flex-start; padding:5px 0; font-family:var(--mono); font-size:11px}
+  /* Marks are drawn in CSS, not typed: no glyph, no font dependency, no emoji. */
+  .chk__m{flex:none; position:relative; width:12px; height:12px; margin-top:2px}
+  .chk__m::before{
+    content:''; position:absolute; left:2px; top:0; width:4px; height:8px;
+    border:solid var(--teal); border-width:0 1.6px 1.6px 0; transform:rotate(42deg);
+  }
+  .chk__m.bad::before,.chk__m.bad::after{
+    content:''; position:absolute; left:5px; top:1px; width:1.6px; height:10px;
+    background:var(--rose); border:0; transform:rotate(45deg);
+  }
+  .chk__m.bad::after{transform:rotate(-45deg)}
+  .chk__t{color:var(--ink-mid); display:block}
+  .chk__d{color:var(--ink-low); font-size:10px; margin-top:2px; display:block; line-height:1.45}
+
+  /* --------------------------------------------------------------- copy actions */
+  .acts{display:flex; gap:0; border-top:1px solid var(--rule)}
+  .act{
+    flex:1; padding:9px 12px; background:none; border:0; border-right:1px solid var(--rule); cursor:pointer;
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-low); text-align:center;
+  }
+  .act:last-child{border-right:0}
+  .act:hover{background:var(--panel-hi); color:var(--amber)}
+
+  /* -------------------------------------------------------------- thinking state */
+  .stages{border:1px solid var(--rule); background:var(--panel)}
+  .stage{display:flex; gap:12px; padding:11px 16px; border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:12px}
+  .stage:last-child{border-bottom:0}
+  .stage__m{flex:none; width:14px; color:var(--teal); position:relative}
+  .stage__m .mk{position:relative; display:block; width:12px; height:12px; margin-top:3px}
+  .stage__m .mk::before{content:''; position:absolute; left:2px; top:0; width:4px; height:8px;
+    border:solid var(--teal); border-width:0 1.6px 1.6px 0; transform:rotate(42deg)}
+  .stage__b{flex:1; min-width:0}
+  .stage__t{color:var(--ink-mid); display:block}
+  .stage__d{font-size:10.5px; color:var(--ink-low); margin-top:2px; display:block}
+  .stage__ms{font-size:10.5px; color:var(--ink-low); font-variant-numeric:tabular-nums}
+  .stage.is-now{background:var(--panel-hi)}
+  .stage.is-now .stage__m{color:var(--amber)}
+  .stage.is-now .stage__t{color:var(--ink)}
+  .stage.is-idle{opacity:.42}
+  .blink{animation:bl 1s steps(2,start) infinite}
+  @keyframes bl{to{opacity:.25}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+
+  /* ------------------------------------------------------- rejected / error state */
+  .notice{border:1px solid var(--rule-strong); background:var(--panel)}
+  .notice__bar{
+    display:flex; align-items:center; gap:9px; padding:9px 14px; border-bottom:1px solid var(--rule);
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  }
+  .notice__bar.warn{color:var(--amber); background:rgba(255,180,84,.07)}
+  .notice__bar.bad{color:var(--rose);  background:rgba(255,122,122,.07)}
+  .notice__bar::before{content:''; flex:none; width:0; height:0; border-left:5px solid transparent;
+    border-right:5px solid transparent; border-bottom:9px solid currentColor}
+  .notice__bar.bad::before{border:0; width:9px; height:9px; background:currentColor;
+    transform:rotate(45deg)}
+  .notice__b{padding:15px 16px}
+  .notice__h{font-size:14.5px; color:var(--ink); margin:0 0 7px}
+  .notice__p{font-size:13px; color:var(--ink-mid); margin:0; line-height:1.6}
+  .sugs{display:flex; flex-direction:column; gap:1px; margin-top:13px; border-top:1px solid var(--rule); padding-top:11px}
+  .sug{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-sunk);
+    border:1px solid var(--rule); cursor:pointer; text-align:left;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-mid);
+  }
+  .sug:hover{border-color:var(--amber); color:var(--ink)}
+  .sug::before{content:'>'; color:var(--amber); flex:none}
+
+  /* ------------------------------------------------------------------ empty state */
+  .empty{padding:44px 0 0; max-width:860px; margin:0 auto}
+  .empty__h{font-size:27px; font-weight:600; letter-spacing:-.02em; margin:0 0 9px; color:var(--ink)}
+  .empty__p{font-size:14px; color:var(--ink-mid); margin:0 0 30px; max-width:52ch; line-height:1.65}
+  .empty__h2{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-low);
+    padding-bottom:8px; border-bottom:1px solid var(--rule); margin-bottom:0}
+  .starters{display:grid; grid-template-columns:1fr 1fr; gap:0}
+  .starter{
+    padding:15px 16px; background:none; border:0; border-bottom:1px solid var(--rule); border-right:1px solid var(--rule);
+    cursor:pointer; text-align:left;
+  }
+  .starter:nth-child(2n){border-right:0}
+  .starter:hover{background:var(--panel)}
+  .starter__q{font-size:13.5px; color:var(--ink); line-height:1.45}
+  .starter__m{font-family:var(--mono); font-size:10px; color:var(--ink-low); margin-top:7px; letter-spacing:.04em}
+  .starter:hover .starter__m{color:var(--amber)}
+
+  /* ----------------------------------------------------------------- input dock */
+  .dock{border-top:1px solid var(--rule); background:var(--bg-sunk); padding:14px 28px 18px}
+  .dock__in{max-width:860px; margin:0 auto}
+  .field{display:flex; align-items:center; gap:11px; border:1px solid var(--rule-strong); background:var(--panel); padding:11px 14px}
+  .field:focus-within{border-color:var(--amber)}
+  .field__c{color:var(--amber); font-family:var(--mono); font-weight:700}
+  .field input{flex:1; background:none; border:0; outline:0; color:var(--ink); font-family:var(--mono); font-size:13.5px}
+  .field input::placeholder{color:var(--ink-low)}
+  .field__k{font-family:var(--mono); font-size:10px; color:var(--ink-low); border:1px solid var(--rule-strong); padding:2px 6px}
+  .dock__note{
+    display:flex; justify-content:space-between; margin-top:8px;
+    font-family:var(--mono); font-size:10px; color:var(--ink-low);
+  }
+</style>
+</head>
+<body>
+
+<nav class="switcher" aria-label="Prototype state switcher">
+  <span class="switcher__tag">A · Instrument</span>
+  <button class="sbtn" data-state-btn="empty">empty</button>
+  <button class="sbtn" data-state-btn="kpi-bar">kpi + bar</button>
+  <button class="sbtn" data-state-btn="table-line">table + line</button>
+  <button class="sbtn" data-state-btn="thinking">thinking</button>
+  <button class="sbtn" data-state-btn="rejected">rejected</button>
+  <button class="sbtn" data-state-btn="error">error</button>
+  <span class="switcher__hint">← → to step · sample data, fictional bank</span>
+</nav>
+
+<div class="app">
+  <aside class="rail">
+    <div class="rail__brand">
+      <div class="wordmark"><b>halcyon</b><span>v0.4</span></div>
+      <div class="rail__sub">conversational data analyst</div>
+    </div>
+    <div>
+      <div class="rail__head">Schema · 4 tables</div>
+      <div id="a-schema"></div>
+    </div>
+    <div class="rail__foot">
+      <div class="ro">connection read-only</div>
+      <div style="margin-top:6px">role halcyon_ro<br>statement timeout 5s<br>row cap 1000</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <span>session 7f2a</span><span class="sep">/</span>
+      <span>postgres · halcyon_demo</span><span class="sep">/</span>
+      <span id="a-crumb">ready</span>
+    </div>
+
+    <div class="scroll">
+      <!-- ============================================================ EMPTY -->
+      <section data-state="empty" hidden>
+        <div class="empty">
+          <h1 class="empty__h">Ask a question about the bank's data.</h1>
+          <p class="empty__p">Halcyon reads four tables, writes the SQL for you, checks it is safe, and
+            runs it read-only. Every answer shows the query it came from.</p>
+          <div class="empty__h2">Start with one of these</div>
+          <div class="starters" id="a-starters"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================== KPI + BAR -->
+      <section data-state="kpi-bar" hidden>
+        <div class="thread">
+          <div class="q"><span class="q__caret">&gt;</span><span class="q__text">Show monthly onboarding applications by customer segment.</span></div>
+          <div class="sheet">
+            <div class="sheet__head"><strong>Answer</strong><span>·</span><span>48 rows</span><span>·</span><span>74&thinsp;ms</span></div>
+            <div class="sheet__body">
+              <p class="answer">Onboarding grew steadily through 2025. Retail took <em>6,575</em> of the
+                <em>8,378</em> applications, 78.5% of volume, and December was the strongest month at
+                <em>983</em> across all segments. SME grew fastest, up <em>81.4%</em> from January to December.</p>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><div class="kpi__l">Total applications</div><div class="kpi__v">8,378</div><div class="kpi__d"><span class="up">▲ 12.4%</span> vs FY2024</div></div>
+              <div class="kpi"><div class="kpi__l">Peak month</div><div class="kpi__v">983</div><div class="kpi__d">December 2025</div></div>
+              <div class="kpi"><div class="kpi__l">Fastest segment</div><div class="kpi__v">+81.4%</div><div class="kpi__d"><span class="up">▲</span> SME, Jan → Dec</div></div>
+            </div>
+            <div class="chart">
+              <div class="chart__cap"><span>Applications by month and segment · FY2025</span><span>source: onboarding_applications</span></div>
+              <div id="a-bars"></div>
+              <div class="legend" id="a-legend"></div>
+            </div>
+            <div class="work">
+              <button class="work__toggle" data-drawer="a-work-1" aria-expanded="false">
+                <span class="chev">›</span><span>Show the work</span>
+                <span class="work__spacer"></span>
+                <span class="verdict"> validated · read-only</span>
+              </button>
+              <div class="work__body" id="a-work-1" hidden>
+                <div class="work__grid">
+                  <div class="sqlbox">
+                    <div class="sqlbox__bar"><span>Generated SQL</span><span style="margin-left:auto">1 table · Seq scan + hash aggregate · cost 412.8</span></div>
+                    <pre class="sql" id="a-sql-1"></pre>
+                  </div>
+                  <div class="checks">
+                    <div class="checks__h">Safety checks · 5 of 5</div>
+                    <div id="a-checks-1"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="acts">
+              <button class="act">Copy answer</button>
+              <button class="act">Copy data · CSV</button>
+              <button class="act">Copy SQL</button>
+              <button class="act">Download chart · PNG</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================== TABLE + LINE -->
+      <section data-state="table-line" hidden>
+        <div class="thread">
+          <div class="q"><span class="q__caret">&gt;</span><span class="q__text">Show the top five customers by transaction value.</span></div>
+          <div class="sheet">
+            <div class="sheet__head"><strong>Answer</strong><span>·</span><span>5 rows</span><span>·</span><span>318&thinsp;ms</span><span>·</span><span>3 tables joined</span></div>
+            <div class="sheet__body">
+              <p class="answer">Ardent Logistics leads on transaction value at <em>&pound;18.74m</em> across
+                <em>4,182</em> transactions. The top five account for <em>&pound;60.86m</em>, which is 8.2% of
+                total FY2025 debit value. Pellworth is the outlier: second by value on the fewest
+                transactions of the five, averaging <em>&pound;15.5k</em> per transaction.</p>
+            </div>
+            <div style="border-top:1px solid var(--rule)"><table class="data" id="a-table"></table></div>
+            <div class="chart">
+              <div class="chart__cap"><span>Monthly transaction value · £m · top 3 shown</span><span>source: transactions</span></div>
+              <div id="a-line"></div>
+              <div class="legend" id="a-legend2"></div>
+            </div>
+            <div class="work">
+              <button class="work__toggle" data-drawer="a-work-2" aria-expanded="false">
+                <span class="chev">›</span><span>Show the work</span>
+                <span class="work__spacer"></span>
+                <span class="verdict"> validated · read-only</span>
+              </button>
+              <div class="work__body" id="a-work-2" hidden>
+                <div class="work__grid">
+                  <div class="sqlbox">
+                    <div class="sqlbox__bar"><span>Generated SQL</span><span style="margin-left:auto">3 tables · hash join ×2 · cost 9,214.0</span></div>
+                    <pre class="sql" id="a-sql-2"></pre>
+                  </div>
+                  <div class="checks">
+                    <div class="checks__h">Safety checks · 5 of 5</div>
+                    <div id="a-checks-2"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="acts">
+              <button class="act">Copy answer</button>
+              <button class="act">Copy data · CSV</button>
+              <button class="act">Copy SQL</button>
+              <button class="act">Download chart · PNG</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= THINKING -->
+      <section data-state="thinking" hidden>
+        <div class="thread">
+          <div class="q"><span class="q__caret">&gt;</span><span class="q__text">Show monthly onboarding applications by customer segment.</span></div>
+          <div class="stages" id="a-stages"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================= REJECTED -->
+      <section data-state="rejected" hidden>
+        <div class="thread">
+          <div class="q"><span class="q__caret">&gt;</span><span class="q__text">Which customers are likely to default next quarter?</span></div>
+          <div class="notice">
+            <div class="notice__bar warn"> Cannot answer from this data</div>
+            <div class="notice__b">
+              <h3 class="notice__h">There is no credit-risk or default data in the connected schema.</h3>
+              <p class="notice__p">The question asks for a forward-looking prediction. Halcyon only reports
+                what is recorded in the four connected tables. It does not forecast, and no table holds
+                arrears, defaults or credit scores. The closest available field is
+                <code style="font-family:var(--mono);color:var(--amber)">customers.risk_band</code>, which is
+                a static onboarding classification, not a prediction.</p>
+              <div class="sugs">
+                <button class="sug">Show the distribution of customers by risk band</button>
+                <button class="sug">Which branches have the highest rejection rate?</button>
+                <button class="sug">Compare retail and SME onboarding volumes</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="q" style="margin-top:6px"><span class="q__caret">&gt;</span><span class="q__text">Delete all rejected applications from 2025.</span></div>
+          <div class="notice">
+            <div class="notice__bar bad"> Blocked by validator</div>
+            <div class="notice__b">
+              <h3 class="notice__h">This would modify data. Halcyon cannot write.</h3>
+              <p class="notice__p">The planner produced a statement beginning <code style="font-family:var(--mono);color:var(--rose)">DELETE</code>.
+                It was rejected before reaching the database, and the connection's role has no write
+                grant regardless: two independent controls, both of which held.</p>
+              <div style="margin-top:13px; border:1px solid var(--rule); background:var(--bg-sunk)">
+                <div class="sqlbox__bar" style="border-bottom:1px solid var(--rule)"><span>Rejected statement · never executed</span></div>
+                <pre class="sql" style="color:var(--ink-low)"><span style="color:var(--rose)">DELETE FROM</span> onboarding_applications
+<span class="k">WHERE</span> decision = <span class="s">'rejected'</span>
+  <span class="k">AND</span> submitted_at &gt;= <span class="s">DATE '2025-01-01'</span>;</pre>
+                <div class="checks" style="border-top:1px solid var(--rule)">
+                  <div class="chk"><span class="chk__m bad"></span><span><span class="chk__t">Read-only (SELECT)</span><span class="chk__d">Statement verb is DELETE. Write verbs are not permitted.</span></span></div>
+                  <div class="chk"><span class="chk__m"></span><span><span class="chk__t">Role grant</span><span class="chk__d">halcyon_ro holds SELECT only. The write would have failed at the database too.</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ ERROR -->
+      <section data-state="error" hidden>
+        <div class="thread">
+          <div class="q"><span class="q__caret">&gt;</span><span class="q__text">Show every transaction for all customers since 2019 with running balances.</span></div>
+          <div class="notice">
+            <div class="notice__bar bad"> Query timed out · 5,000 ms</div>
+            <div class="notice__b">
+              <h3 class="notice__h">The query was valid, but too heavy to finish.</h3>
+              <p class="notice__p">The statement passed all five safety checks and began executing, then hit
+                the 5-second statement timeout while scanning <em style="font-style:normal;color:var(--amber);font-family:var(--mono)">2,914,330</em>
+                rows in <code style="font-family:var(--mono);color:var(--ink)">transactions</code>. Nothing was
+                left running and no partial result is shown, because a partial answer to a question about
+                totals is worse than none.</p>
+              <div style="margin-top:13px; border:1px solid var(--rule); background:var(--bg-sunk); padding:11px 14px; font-family:var(--mono); font-size:11px; color:var(--ink-low); line-height:1.7">
+                <div><span style="color:var(--ink-mid)">error</span> &nbsp;57014 · statement_timeout</div>
+                <div><span style="color:var(--ink-mid)">stage</span> &nbsp;execute (4 of 6 completed)</div>
+                <div><span style="color:var(--ink-mid)">trace</span> &nbsp;7f2a-9d41-ec03</div>
+              </div>
+              <div class="sugs">
+                <button class="sug">Narrow it to one year: transactions since January 2025</button>
+                <button class="sug">Aggregate instead: monthly totals by segment</button>
+                <button class="sug">Retry with a 30-second timeout</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="dock">
+      <div class="dock__in">
+        <div class="field">
+          <span class="field__c">&gt;</span>
+          <input type="text" placeholder="Ask about customers, branches, onboarding or transactions…" aria-label="Ask a question">
+          <span class="field__k">↵</span>
+        </div>
+        <div class="dock__note">
+          <span>Halcyon reads only. It cannot insert, update or delete.</span>
+          <span>Sample data · fictional institution</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../shared/halcyon-data.js"></script>
+<script src="../shared/charts.js"></script>
+<script src="../shared/switcher.js"></script>
+<script>
+(function(){
+  'use strict';
+  var D = window.HALCYON, C = window.HChart, esc = C.esc;
+  var MONO = "'JetBrains Mono', ui-monospace, monospace";
+  var TOK = {
+    grid:'#1E2330', axis:'#2A3040', text:'#767D8E',
+    cats:['#FFB454','#5AC8B0','#9B8CFF','#FF7A7A']
+  };
+
+  /* -- schema rail -- */
+  document.getElementById('a-schema').innerHTML = D.schema.map(function(t){
+    return '<div class="tbl" data-t="'+t.table+'">'+
+      '<div class="tbl__row"><span>'+esc(t.table)+'</span><span class="tbl__n">'+esc(t.rows)+'</span></div>'+
+      '<div class="tbl__cols">'+esc(t.columns.slice(0,3).join(' · '))+
+      (t.columns.length>3?' +'+(t.columns.length-3):'')+'</div></div>';
+  }).join('');
+
+  /* -- starters -- */
+  var STARTERS = [
+    {q:'Show monthly onboarding applications by customer segment.', m:'onboarding_applications → bar chart'},
+    {q:'Which branches have the highest rejection rate?',            m:'onboarding_applications + branches → ranked table'},
+    {q:'Compare retail and SME onboarding volumes.',                 m:'onboarding_applications → KPI + bar'},
+    {q:'Show the top five customers by transaction value.',          m:'transactions + customers + branches → table'}
+  ];
+  document.getElementById('a-starters').innerHTML = STARTERS.map(function(s){
+    return '<button class="starter"><div class="starter__q">'+esc(s.q)+'</div>'+
+           '<div class="starter__m">'+esc(s.m)+'</div></button>';
+  }).join('');
+
+  /* -- charts -- */
+  document.getElementById('a-bars').innerHTML = C.groupedBars({
+    width:800, height:230, labels:D.months, series:D.onboarding.series,
+    colors:TOK.cats, grid:TOK.grid, axis:TOK.axis, text:TOK.text, font:MONO,
+    alt:'Monthly onboarding applications by segment, 2025'
+  });
+  document.getElementById('a-legend').innerHTML = D.onboarding.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';
+  }).join('');
+
+  document.getElementById('a-line').innerHTML = C.lineChart({
+    width:800, height:200, labels:D.months, series:D.txnTrend.series,
+    colors:TOK.cats, grid:TOK.grid, axis:TOK.axis, text:TOK.text, font:MONO,
+    dotFill:'#11141D', zeroBased:false,
+    tickFormat:function(v){return '\u00a3'+v.toFixed(1)+'m';},
+    alt:'Monthly transaction value for the top three customers'
+  });
+  document.getElementById('a-legend2').innerHTML = D.txnTrend.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';
+  }).join('');
+
+  /* -- data table -- */
+  var tc = D.topCustomers;
+  document.getElementById('a-table').innerHTML =
+    '<thead><tr>'+tc.columns.map(function(c){
+      return '<th'+(c.align==='right'?' class="num"':'')+'>'+esc(c.label)+'</th>';
+    }).join('')+'</tr></thead><tbody>'+
+    tc.rows.map(function(r){
+      return '<tr>'+
+        '<td class="rank">'+r.rank+'</td>'+
+        '<td style="color:var(--ink)">'+esc(r.customer)+'</td>'+
+        '<td>'+esc(r.segment)+'</td>'+
+        '<td>'+esc(r.branch)+'</td>'+
+        '<td class="num">'+D.fmt.num(r.txns)+'</td>'+
+        '<td class="num">'+D.fmt.gbp(r.value)+'</td></tr>';
+    }).join('')+'</tbody>';
+
+  /* -- SQL highlighting: keywords / strings / functions / comments -- */
+  function hi(sql){
+    return esc(sql)
+      .replace(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|ON|AND|OR|AS|DESC|ASC|DATE)\b/g,'<span class="k">$1</span>')
+      .replace(/('[^']*')/g,'<span class="s">$1</span>')
+      .replace(/\b(COUNT|SUM|date_trunc)\b/g,'<span class="f">$1</span>')
+      .replace(/(\$\d)/g,'<span class="f">$1</span>');
+  }
+  document.getElementById('a-sql-1').innerHTML = hi(D.runs.onboarding.sql);
+  document.getElementById('a-sql-2').innerHTML = hi(D.runs.customers.sql);
+
+  function checks(list){
+    return list.map(function(c){
+      return '<div class="chk"><span class="chk__m'+(c.status==='pass'?'':' bad')+'">'+
+        '</span><span><span class="chk__t">'+esc(c.label)+
+        '</span><span class="chk__d">'+esc(c.detail)+'</span></span></div>';
+    }).join('');
+  }
+  document.getElementById('a-checks-1').innerHTML = checks(D.runs.onboarding.checks);
+  document.getElementById('a-checks-2').innerHTML = checks(D.runs.customers.checks);
+
+  /* -- thinking stages: 4 done, 1 running, 1 idle -- */
+  var MS = ['12 ms','31 ms','204 ms','8 ms','',''];
+  document.getElementById('a-stages').innerHTML = D.stages.map(function(s,i){
+    var cls = i<4 ? '' : i===4 ? ' is-now' : ' is-idle';
+    var mark = i<4 ? '<span class="mk"></span>'
+             : i===4 ? '<span class="blink">\u258D</span>' : '\u00b7';
+    return '<div class="stage'+cls+'"><span class="stage__m">'+mark+'</span>'+
+      '<span class="stage__b"><span class="stage__t">'+esc(s.label)+'</span>'+
+      '<span class="stage__d">'+esc(i===4?'Role halcyon_ro · 5s timeout · running…':s.detail)+'</span></span>'+
+      '<span class="stage__ms">'+MS[i]+'</span></div>';
+  }).join('');
+
+  /* -- highlight the tables each state touches; keep the crumb honest -- */
+  var USED = {
+    'kpi-bar':     ['onboarding_applications'],
+    'table-line':  ['transactions','customers','branches'],
+    'thinking':    ['onboarding_applications'],
+    'rejected':    ['onboarding_applications'],
+    'error':       ['transactions']
+  };
+  var CRUMB = {
+    'empty':'ready', 'kpi-bar':'answered · 74 ms', 'table-line':'answered · 318 ms',
+    'thinking':'executing…', 'rejected':'2 questions declined', 'error':'timeout 57014'
+  };
+
+  window.HSwitch.init({
+    initial:'kpi-bar',
+    onChange:function(state){
+      var used = USED[state] || [];
+      document.querySelectorAll('.tbl').forEach(function(el){
+        el.classList.toggle('is-used', used.indexOf(el.getAttribute('data-t'))>-1);
+      });
+      document.getElementById('a-crumb').textContent = CRUMB[state] || 'ready';
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — Broadsheet, all states</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#13100E; --deep:#0D0B09; --paper:#1B1714; --rule:#2E2722; --rule-hi:#453B33;
+    --ink:#F5EDE6; --mid:#B8ABA0; --low:#857A70; --salmon:#FF9E7A; --sage:#8FBF9F;
+    --serif:'Source Serif 4',Georgia,serif; --sans:'Source Sans 3',-apple-system,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+  :focus-visible{outline:2px solid var(--salmon);outline-offset:2px}
+  .wrap{max-width:1240px;margin:0 auto;padding:42px 32px 80px}
+  h1{font-family:var(--serif);font-size:38px;font-weight:700;letter-spacing:-.025em;margin:0 0 10px}
+  .sub{font-family:var(--serif);color:var(--mid);max-width:66ch;margin:0 0 10px;font-size:17px;line-height:1.6}
+  .meta{font-family:var(--mono);font-size:11px;color:var(--low);margin-bottom:30px}
+  .meta b{color:var(--sage);font-weight:400}
+  .cta{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    text-transform:uppercase;background:var(--salmon);color:var(--deep);padding:11px 20px;
+    text-decoration:none;margin-bottom:34px}
+  .cta:hover{background:#fff}
+  h2{font-family:var(--serif);font-size:22px;font-weight:600;margin:44px 0 6px;
+     padding-bottom:9px;border-bottom:2px solid var(--ink)}
+  .h2note{font-family:var(--mono);font-size:11px;color:var(--low);margin:0 0 20px}
+  .bar{display:flex;gap:2px;flex-wrap:wrap;position:sticky;top:0;z-index:20;background:var(--bg);
+       padding:12px 0;border-bottom:1px solid var(--rule);margin-bottom:22px}
+  .bar button{font-family:var(--mono);font-size:11.5px;padding:7px 13px;border:1px solid var(--rule-hi);
+    background:none;color:var(--mid);cursor:pointer}
+  .bar button:hover{color:var(--ink)}
+  .bar button.on{background:var(--salmon);color:var(--deep);border-color:var(--salmon);font-weight:500}
+  .shotwrap{border:1px solid var(--rule);background:var(--paper)}
+  .shotwrap img{display:block;width:100%}
+  .cap{font-family:var(--mono);font-size:11px;color:var(--low);padding:10px 14px;border-top:1px solid var(--rule)}
+  .docs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .doc{border:1px solid var(--rule);background:var(--paper);padding:17px 18px;text-decoration:none;display:block}
+  .doc:hover{border-color:var(--salmon)}
+  .doc__n{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--salmon)}
+  .doc__t{font-family:var(--serif);font-size:18px;color:var(--ink);margin:8px 0 7px;font-weight:600}
+  .doc__d{font-size:13px;color:var(--mid);line-height:1.55;margin:0}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--low);padding:9px 12px;border-bottom:1px solid var(--rule-hi);font-weight:500}
+  td{padding:9px 12px;border-bottom:1px solid var(--rule);color:var(--mid)}
+  td b{color:var(--ink);font-weight:600}
+  code{font-family:var(--mono);font-size:.88em;color:var(--salmon)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Halcyon</h1>
+  <p class="sub">Conversational data analyst for a fictional bank. Direction <b>B &middot; Broadsheet</b>,
+     approved and built out: all four example questions from the brief, eight states, dark theme.</p>
+  <p class="meta">impeccable <b>0 anti-patterns</b> &middot; <b>0 console errors</b> &middot;
+     8 states &middot; 4 drawers verified &middot; every figure reconciled against source data</p>
+  <a class="cta" href="design-demos/halcyon.html" target="_blank">Open the prototype &rarr;</a>
+
+  <h2>Every state</h2>
+  <p class="h2note">Click through. In the prototype itself, arrow keys step between states.</p>
+  <div class="bar" id="bar"></div>
+  <div class="shotwrap"><img id="shot" src="shots/kpi-bar.png" alt="Halcyon state"><div class="cap" id="cap"></div></div>
+
+  <h2>The documents</h2>
+  <p class="h2note">Three deliverables, alongside the prototype.</p>
+  <div class="docs">
+    <a class="doc" href="docs/design-doc.md">
+      <div class="doc__n">Design</div>
+      <div class="doc__t">Design document</div>
+      <p class="doc__d">The core idea, why this dark, layout rationale, type system, the audit-trail
+         decision, and the eight rules that must not be broken.</p></a>
+    <a class="doc" href="docs/architecture-note.md">
+      <div class="doc__n">Engineering</div>
+      <div class="doc__t">Architecture note</div>
+      <p class="doc__d">The six-stage pipeline, the five-check SQL guard, the read-only role,
+         API contract, the test that matters, and how it would be productionised.</p></a>
+    <a class="doc" href="docs/tailwind-theme.css">
+      <div class="doc__n">Tokens</div>
+      <div class="doc__t">Tailwind v4 theme</div>
+      <p class="doc__d">Every colour, font, size and spacing token as a drop-in <code>@theme</code>
+         block, plus the Recharts bridge. 46 tokens, no arbitrary values needed.</p></a>
+  </div>
+
+  <h2>The four questions from the brief</h2>
+  <p class="h2note">All answered, each with a different output form.</p>
+  <table>
+    <thead><tr><th>Question</th><th>State</th><th>Form</th><th>Tables</th></tr></thead>
+    <tbody>
+      <tr><td><b>Show monthly onboarding applications by customer segment.</b></td><td><code>kpi-bar</code></td><td>KPI row + grouped bars</td><td>1</td></tr>
+      <tr><td><b>Which branches have the highest rejection rate?</b></td><td><code>branches</code></td><td>Ranked horizontal bars + table</td><td>2</td></tr>
+      <tr><td><b>Compare retail and SME onboarding volumes.</b></td><td><code>compare</code></td><td>Head-to-head + paired bars</td><td>1</td></tr>
+      <tr><td><b>Show the top five customers by transaction value.</b></td><td><code>table-line</code></td><td>Data table + line chart</td><td>3</td></tr>
+    </tbody>
+  </table>
+
+  <h2>One thing still unproven</h2>
+  <p class="sub" style="font-size:15px">The Tailwind theme could not be compiled here: this machine's
+     npm registry blocks a transitive dependency (<code>E403 MediaTypeBlocked</code>). The CSS was
+     verified structurally instead &mdash; balanced, 46 tokens, no unresolved references, all 12 colours
+     matching the live design exactly. Run
+     <code>npx @tailwindcss/cli -i docs/tailwind-theme.css -o /tmp/out.css</code> on an open network to
+     close it out.</p>
+</div>
+
+<script>
+(function(){
+  var S=[
+    ['kpi-bar','KPI + bar chart','Monthly onboarding by segment. The default answer shape.'],
+    ['branches','Branches','Rejection rate by branch: ranked bars, then the counts behind them.'],
+    ['compare','Compare','Retail against SME, as a head-to-head with paired bars.'],
+    ['table-line','Table + line','Top five customers by value, then their trend over the year.'],
+    ['empty','Empty','First run. Four starter questions, each labelled with the tables it touches.'],
+    ['thinking','Thinking','Six pipeline stages, four done, one running. Routing made visible.'],
+    ['rejected','Rejected','An unanswerable question, and a blocked DELETE shown in full.'],
+    ['error','Error','Statement timeout. Valid query, honest failure, three ways forward.'],
+    ['kpi-bar-notes-open','Notes opened','The audit drawer: SQL as executed, plus all five safety checks.']
+  ];
+  var bar=document.getElementById('bar'),img=document.getElementById('shot'),cap=document.getElementById('cap'),cur=0;
+  bar.innerHTML=S.map(function(s,i){return '<button data-i="'+i+'">'+s[1]+'</button>';}).join('');
+  function draw(){
+    img.src='shots/'+S[cur][0]+'.png'; img.alt='Halcyon - '+S[cur][1];
+    cap.textContent=S[cur][2];
+    Array.prototype.forEach.call(bar.querySelectorAll('button'),function(b,i){
+      b.classList.toggle('on',i===cur);});
+  }
+  bar.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    cur=+b.getAttribute('data-i'); draw();});
+  draw(); window.__ready=true;
+})();
+</script>
+</body>
+</html>

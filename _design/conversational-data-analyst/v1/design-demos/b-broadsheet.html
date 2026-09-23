@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en" data-direction="broadsheet">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — Direction B · Broadsheet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  DIRECTION B · "Broadsheet"
+  Logic 2 — real-world benchmark. Reference: the Financial Times' financial-editorial
+  design language (Origami design system; the FT salmon ground is one of the most
+  recognisable brand colours in finance) rendered as a dark newsroom.
+
+  Form comes from content: a bank analyst's answer is a *briefing*. So the answer is set
+  like a filed story — standfirst, pull figures, a chart with a caption and a source line,
+  and the SQL filed underneath as the correspondent's notes. Serif for prose because prose
+  is meant to be read; monospace only for figures.
+-->
+<style>
+  :root{
+    --bg:          #13100E;   /* warm espresso, not blue-black */
+    --bg-deep:     #0D0B09;
+    --paper:       #1B1714;
+    --paper-hi:    #231D19;
+    --rule:        #2E2722;
+    --rule-hi:     #453B33;
+    --ink:         #F5EDE6;   /* 15.1:1 on --bg */
+    --ink-mid:     #B8ABA0;   /* 8.0:1  */
+    --ink-low:     #857A70;   /* 4.6:1  — floor */
+    --salmon:      #FF9E7A;   /* the accent. FT lineage. means: the machine's own voice */
+    --salmon-deep: #C96B4A;
+    --sage:        #8FBF9F;
+    --slate:       #8FA9C4;
+    --claret:      #C9A227;   /* amber-gold. deliberately far from salmon in hue, so the
+                                 fourth series stays distinguishable from the first. */
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans:  'Source Sans 3', -apple-system, sans-serif;
+    --mono:  'IBM Plex Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
+  ::selection{background:var(--salmon-deep); color:#fff}
+  :focus-visible{outline:2px solid var(--salmon); outline-offset:2px}
+
+  .switcher{
+    position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:2px;
+    padding:8px 20px; background:var(--bg-deep); border-bottom:1px solid var(--rule);
+    font-family:var(--mono); font-size:11px;
+  }
+  .switcher__tag{color:var(--salmon); letter-spacing:.09em; text-transform:uppercase; margin-right:14px; font-weight:500}
+  .switcher__hint{margin-left:auto; color:var(--ink-low)}
+  .sbtn{appearance:none; border:0; background:none; color:var(--ink-low); font:inherit; padding:5px 10px; cursor:pointer}
+  .sbtn:hover{color:var(--ink-mid)}
+  .sbtn.is-active{color:var(--bg-deep); background:var(--salmon); font-weight:500}
+
+  /* ------------------------------------------------------------------ skeleton */
+  /* Skeleton B: full-width masthead, input docked at the TOP under it, then a wide
+     narrative column with a persistent right-hand evidence rail. No left nav at all. */
+  .masthead{
+    display:flex; align-items:baseline; gap:18px; padding:16px 40px 13px;
+    border-bottom:2px solid var(--ink); background:var(--bg-deep);
+  }
+  .mast__name{font-family:var(--serif); font-size:26px; font-weight:700; letter-spacing:-.02em}
+  .mast__rule{font-family:var(--mono); font-size:10.5px; color:var(--ink-low); letter-spacing:.1em; text-transform:uppercase}
+  .mast__right{margin-left:auto; display:flex; gap:20px; font-family:var(--mono); font-size:10.5px; color:var(--ink-low)}
+  .mast__ro{color:var(--sage)}
+
+  .askbar{background:var(--paper); border-bottom:1px solid var(--rule); padding:15px 40px}
+  .askbar__in{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:14px;
+    border-bottom:2px solid var(--rule-hi); padding-bottom:9px}
+  .askbar__in:focus-within{border-bottom-color:var(--salmon)}
+  .askbar input{flex:1; background:none; border:0; outline:0; color:var(--ink);
+    font-family:var(--serif); font-size:20px; font-weight:400}
+  .askbar input::placeholder{color:var(--ink-low)}
+  .askbar__go{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--bg-deep); background:var(--salmon); border:0; padding:7px 14px; cursor:pointer}
+  .askbar__note{max-width:1180px; margin:9px auto 0; font-family:var(--mono); font-size:10.5px; color:var(--ink-low);
+    display:flex; justify-content:space-between}
+
+  .sheetwrap{padding:26px 40px 44px}
+  .grid{max-width:1180px; margin:0 auto; display:grid; grid-template-columns:1fr 316px; gap:34px; align-items:start}
+  .rail{position:sticky; top:53px; display:flex; flex-direction:column; gap:20px}
+
+  /* ------------------------------------------------------------------- article */
+  .kicker{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--salmon); padding-bottom:9px; border-bottom:1px solid var(--rule); margin-bottom:15px;
+    display:flex; gap:12px}
+  .kicker span:last-child{margin-left:auto; color:var(--ink-low)}
+  .headline{font-family:var(--serif); font-size:31px; font-weight:600; line-height:1.2;
+    letter-spacing:-.018em; margin:0 0 13px; text-wrap:pretty; max-width:22ch}
+  .standfirst{font-family:var(--serif); font-size:17.5px; line-height:1.62; color:var(--ink-mid);
+    margin:0 0 22px; max-width:62ch; text-wrap:pretty}
+  .standfirst b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+
+  .figs{display:flex; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); margin-bottom:24px}
+  .fig{flex:1; padding:15px 20px 15px 0; border-right:1px solid var(--rule)}
+  .fig:last-child{border-right:0; padding-right:0}
+  .fig:not(:first-child){padding-left:20px}
+  .fig__v{font-family:var(--serif); font-size:33px; font-weight:700; letter-spacing:-.025em;
+    font-variant-numeric:tabular-nums; line-height:1}
+  .fig__l{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-low); margin-top:8px}
+  .fig__d{font-size:12.5px; color:var(--ink-mid); margin-top:4px}
+  .down{color:#E3746E}
+  .up{color:var(--sage)}
+
+  .figure{margin:0 0 24px}
+  .figure__h{font-family:var(--serif); font-size:16px; font-weight:600; margin-bottom:2px}
+  .figure__sub{font-family:var(--mono); font-size:10.5px; color:var(--ink-low); margin-bottom:12px}
+  .figure__body{background:var(--paper); border:1px solid var(--rule); padding:16px 12px 8px}
+  .figure__src{font-family:var(--mono); font-size:10px; color:var(--ink-low); margin-top:9px;
+    padding-top:8px; border-top:1px solid var(--rule); display:flex; justify-content:space-between}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; padding:10px 6px 2px; font-size:12px; color:var(--ink-mid)}
+  .legend i{display:inline-block; width:11px; height:3px; margin-right:7px; vertical-align:3px}
+
+  table.data{width:100%; border-collapse:collapse; font-size:13.5px}
+  table.data th{text-align:left; font-family:var(--mono); font-weight:500; font-size:10px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-low); padding:0 12px 8px; border-bottom:1px solid var(--rule-hi)}
+  table.data td{padding:9px 12px; border-bottom:1px solid var(--rule); color:var(--ink-mid)}
+  table.data td:nth-child(2){color:var(--ink); font-family:var(--serif); font-size:15px; font-weight:600}
+  table.data tr:last-child td{border-bottom:0}
+  table.data tr:hover td{background:var(--paper-hi)}
+  .num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink)!important}
+  .rank{color:var(--salmon)!important; font-family:var(--mono); width:2rem}
+
+  /* ---------------------------------------------------- notes = show the work */
+  .notes{border-top:2px solid var(--ink); margin-top:8px}
+  .notes__t{display:flex; align-items:center; gap:11px; width:100%; padding:13px 0; background:none;
+    border:0; cursor:pointer; text-align:left; font-family:var(--mono); font-size:11px;
+    letter-spacing:.09em; text-transform:uppercase; color:var(--ink-mid)}
+  .notes__t:hover{color:var(--salmon)}
+  .notes__t .chev{color:var(--salmon); transition:transform .15s}
+  .notes__t.is-open .chev{transform:rotate(90deg)}
+  .verdict{margin-left:auto; display:inline-flex; align-items:center; gap:7px; font-size:10px;
+    letter-spacing:.07em; color:var(--sage); text-transform:uppercase}
+  .verdict::before{content:''; width:6px; height:6px; background:currentColor; border-radius:50%}
+  .verdict.bad{color:#E3746E}
+  .notes__b{padding-bottom:20px}
+  .notes__cols{display:grid; grid-template-columns:1fr 250px; gap:20px}
+  .sqlwrap{background:var(--bg-deep); border:1px solid var(--rule); min-width:0}
+  .sqlwrap__h{padding:8px 13px; border-bottom:1px solid var(--rule); font-family:var(--mono);
+    font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-low);
+    display:flex; justify-content:space-between}
+  pre.sql{margin:0; padding:14px; font-family:var(--mono); font-size:11.5px; line-height:1.68;
+    color:var(--ink-mid); overflow:auto}
+  .k{color:var(--slate)} .s{color:var(--sage)} .f{color:var(--salmon)}
+  .chk{display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--rule); font-size:12px}
+  .chk:last-child{border-bottom:0}
+  .chk__m{flex:none; position:relative; width:12px; height:12px; margin-top:3px}
+  .chk__m::before{content:''; position:absolute; left:2px; top:0; width:4px; height:8px;
+    border:solid var(--sage); border-width:0 1.6px 1.6px 0; transform:rotate(42deg)}
+  .chk__m.bad::before,.chk__m.bad::after{content:''; position:absolute; left:5px; top:1px; width:1.6px;
+    height:10px; background:#E3746E; border:0; transform:rotate(45deg)}
+  .chk__m.bad::after{transform:rotate(-45deg)}
+  .chk__t{color:var(--ink-mid); font-size:12.5px; display:block}
+  .chk__d{color:var(--ink-low); font-size:11px; margin-top:3px; line-height:1.45; display:block}
+  .notes__h{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-low); margin-bottom:6px}
+
+  .byline{display:flex; gap:0; border-top:1px solid var(--rule); margin-top:4px}
+  .byline button{flex:1; padding:11px 8px; background:none; border:0; border-right:1px solid var(--rule);
+    cursor:pointer; font-family:var(--mono); font-size:10.5px; color:var(--ink-low)}
+  .byline button:last-child{border-right:0}
+  .byline button:hover{color:var(--salmon); background:var(--paper)}
+
+  /* --------------------------------------------------------------- right rail */
+  .card{background:var(--paper); border:1px solid var(--rule)}
+  .card__h{font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-low); padding:11px 14px; border-bottom:1px solid var(--rule)}
+  .card__b{padding:13px 14px}
+  .srcrow{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:7px 0;
+    border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:11.5px; color:var(--ink-low)}
+  .srcrow:last-child{border-bottom:0}
+  .srcrow.on{color:var(--ink)}
+  .srcrow.on b{color:var(--salmon); font-weight:500}
+  .srcrow em{font-style:normal; font-size:10px}
+  .minih{font-family:var(--serif); font-size:14px; color:var(--ink); margin:0 0 7px; font-weight:600}
+  .minip{font-size:12.5px; color:var(--ink-mid); line-height:1.55; margin:0}
+
+  /* --------------------------------------------------------------- empty state */
+  .lede{max-width:1180px; margin:0 auto; padding:14px 0 0}
+  .lede__h{font-family:var(--serif); font-size:40px; font-weight:600; letter-spacing:-.025em;
+    line-height:1.12; margin:0 0 14px; max-width:17ch}
+  .lede__p{font-family:var(--serif); font-size:17.5px; color:var(--ink-mid); line-height:1.6;
+    max-width:56ch; margin:0 0 32px}
+  .deskhead{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-low); border-bottom:2px solid var(--ink); padding-bottom:9px; margin-bottom:0}
+  .desk{display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px}
+  .desk button{text-align:left; background:none; border:0; border-bottom:1px solid var(--rule);
+    padding:16px 0; cursor:pointer}
+  .desk button:hover .desk__q{color:var(--salmon)}
+  .desk__n{font-family:var(--mono); font-size:10px; color:var(--salmon); letter-spacing:.09em}
+  .desk__q{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1.35; margin:6px 0 7px}
+  .desk__m{font-family:var(--mono); font-size:10.5px; color:var(--ink-low)}
+
+  /* ------------------------------------------------------------- thinking etc. */
+  .wire{border-left:2px solid var(--rule); padding-left:22px; margin-left:4px}
+  .wstep{position:relative; padding:0 0 22px}
+  .wstep::before{content:''; position:absolute; left:-27px; top:5px; width:8px; height:8px;
+    background:var(--bg); border:2px solid var(--rule-hi); border-radius:50%}
+  .wstep.done::before{background:var(--sage); border-color:var(--sage)}
+  .wstep.now::before{background:var(--salmon); border-color:var(--salmon)}
+  .wstep.now{}
+  .wstep.idle{opacity:.4}
+  .wstep__t{font-family:var(--serif); font-size:16.5px; font-weight:600; color:var(--ink-mid)}
+  .wstep.now .wstep__t{color:var(--ink)}
+  .wstep__d{font-family:var(--mono); font-size:11px; color:var(--ink-low); margin-top:3px}
+  .wstep__ms{font-family:var(--mono); font-size:10.5px; color:var(--ink-low); float:right}
+  .blink{animation:bl 1s steps(2,start) infinite}
+  @keyframes bl{to{opacity:.2}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+
+  .correction{border:1px solid var(--rule-hi); background:var(--paper)}
+  .correction__h{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    padding:10px 16px; border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:9px}
+  .correction__h.bad{color:#E3746E}
+  .correction__h.warn{color:var(--salmon)}
+  .correction__h::before{content:''; width:7px; height:7px; background:currentColor}
+  .correction__b{padding:18px 20px}
+  .correction__t{font-family:var(--serif); font-size:22px; font-weight:600; margin:0 0 10px; line-height:1.28; max-width:28ch}
+  .correction__p{font-family:var(--serif); font-size:15.5px; color:var(--ink-mid); line-height:1.62; margin:0; max-width:58ch}
+  code{font-family:var(--mono); font-size:.88em; color:var(--salmon)}
+  .alts{margin-top:18px; border-top:1px solid var(--rule); padding-top:4px}
+  .alts button{display:flex; gap:11px; width:100%; text-align:left; background:none; border:0;
+    border-bottom:1px solid var(--rule); padding:11px 0; cursor:pointer;
+    font-family:var(--serif); font-size:15px; color:var(--ink-mid)}
+  .alts button:last-child{border-bottom:0}
+  .alts button:hover{color:var(--salmon)}
+  .alts button::before{content:'\2192'; color:var(--salmon); font-family:var(--sans)}
+</style>
+</head>
+<body>
+
+<nav class="switcher" aria-label="Prototype state switcher">
+  <span class="switcher__tag">B · Broadsheet</span>
+  <button class="sbtn" data-state-btn="empty">empty</button>
+  <button class="sbtn" data-state-btn="kpi-bar">kpi + bar</button>
+  <button class="sbtn" data-state-btn="table-line">table + line</button>
+  <button class="sbtn" data-state-btn="thinking">thinking</button>
+  <button class="sbtn" data-state-btn="rejected">rejected</button>
+  <button class="sbtn" data-state-btn="error">error</button>
+  <span class="switcher__hint">arrow keys to step - sample data, fictional bank</span>
+</nav>
+
+<header class="masthead">
+  <div class="mast__name">Halcyon</div>
+  <div class="mast__rule">Conversational data analyst</div>
+  <div class="mast__right">
+    <span class="mast__ro">Read-only connection</span>
+    <span>halcyon_demo</span>
+    <span id="b-stamp">Ready</span>
+  </div>
+</header>
+
+<div class="askbar">
+  <div class="askbar__in">
+    <input type="text" placeholder="Ask about customers, branches, onboarding or transactions..." aria-label="Ask a question">
+    <button class="askbar__go">Ask</button>
+  </div>
+  <div class="askbar__note">
+    <span>Every answer is filed with the query that produced it.</span>
+    <span>Sample data - fictional institution</span>
+  </div>
+</div>
+
+<div class="sheetwrap">
+
+  <!-- ================================================================= EMPTY -->
+  <section data-state="empty" hidden>
+    <div class="lede">
+      <h1 class="lede__h">Ask a question. Get a filed answer.</h1>
+      <p class="lede__p">Halcyon reads four tables of the bank's data, writes the query for you,
+        checks it is safe to run, and files the result with its sources attached - the way a
+        desk would.</p>
+      <div class="deskhead">Today's desk</div>
+      <div class="desk" id="b-desk"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================== KPI + BAR -->
+  <section data-state="kpi-bar" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Onboarding</span><span>Filed 74 ms - 48 rows</span></div>
+        <h1 class="headline">Onboarding climbed through 2025, with retail carrying four fifths of it</h1>
+        <p class="standfirst">The bank took <b>8,378</b> applications across the year, of which retail
+          accounted for <b>6,575</b> - 78.5 per cent of volume. December was the strongest month at
+          <b>983</b>. The sharpest growth came from SME, up <b>81.4 per cent</b> between January and
+          December, from a much smaller base.</p>
+
+        <div class="figs">
+          <div class="fig"><div class="fig__v">8,378</div><div class="fig__l">Total applications</div><div class="fig__d"><span class="up">+12.4%</span> on FY2024</div></div>
+          <div class="fig"><div class="fig__v">983</div><div class="fig__l">Peak month</div><div class="fig__d">December 2025</div></div>
+          <div class="fig"><div class="fig__v">+81.4%</div><div class="fig__l">Fastest segment</div><div class="fig__d"><span class="up">SME</span>, Jan to Dec</div></div>
+        </div>
+
+        <figure class="figure">
+          <div class="figure__h">Applications by month and segment</div>
+          <div class="figure__sub">FY2025 - count of applications</div>
+          <div class="figure__body">
+            <div id="b-bars"></div>
+            <div class="legend" id="b-legend"></div>
+            <div class="figure__src"><span>Source: onboarding_applications</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-1" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-1" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>cost 412.8</span></div>
+                <pre class="sql" id="b-sql-1"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-1"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-1"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">Why a bar chart</div>
+          <div class="card__b">
+            <p class="minih">Category across time</p>
+            <p class="minip">The question asks for a count grouped by month and by segment. Twelve
+              time buckets and four categories reads best as grouped bars; a line would imply the
+              segments are continuous measures rather than counts.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================================================== TABLE + LINE -->
+  <section data-state="table-line" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Transactions</span><span>Filed 318 ms - 5 rows - 3 tables</span></div>
+        <h1 class="headline">Ardent Logistics leads the book on value, Pellworth on size per trade</h1>
+        <p class="standfirst">The five largest customers by transaction value moved <b>&pound;60.86m</b>
+          between them in FY2025, 8.2 per cent of total debit value. Ardent Logistics tops the table at
+          <b>&pound;18.74m</b>. Pellworth Holdings is the outlier: second by value on the fewest
+          transactions of the five, averaging <b>&pound;15.5k</b> a transaction.</p>
+
+        <figure class="figure">
+          <div class="figure__h">Top five customers by transaction value</div>
+          <div class="figure__sub">FY2025 - debit transactions only</div>
+          <div class="figure__body" style="padding:14px 4px 8px">
+            <table class="data" id="b-table"></table>
+            <div class="figure__src" style="margin:9px 10px 0"><span>Source: transactions, customers, branches</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <figure class="figure">
+          <div class="figure__h">Monthly transaction value</div>
+          <div class="figure__sub">Top three customers - &pound; millions</div>
+          <div class="figure__body">
+            <div id="b-line"></div>
+            <div class="legend" id="b-legend2"></div>
+            <div class="figure__src"><span>Source: transactions</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-2" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-2" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>hash join x2 - cost 9,214.0</span></div>
+                <pre class="sql" id="b-sql-2"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-2"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-2"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">Assumptions made</div>
+          <div class="card__b">
+            <p class="minih">Three, all reversible</p>
+            <p class="minip">"Top five" read as ORDER BY total value DESC LIMIT 5. "Transaction value"
+              read as the sum of debit amounts, not net flow. The period defaults to FY2025 because the
+              question named none.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================= THINKING -->
+  <section data-state="thinking" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Filing</span><span id="b-elapsed">255 ms elapsed</span></div>
+        <h1 class="headline" style="color:var(--ink-mid)">Show monthly onboarding applications by customer segment.</h1>
+        <div class="wire" id="b-wire" style="margin-top:26px"></div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-3"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================= REJECTED -->
+  <section data-state="rejected" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Not filed</span><span>2 questions declined</span></div>
+
+        <div class="correction" style="margin-bottom:26px">
+          <div class="correction__h warn">Cannot be answered from this data</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Which customers are likely to default next quarter?"</div>
+            <h2 class="correction__t">There is no credit-risk data in the connected schema.</h2>
+            <p class="correction__p">The question asks for a forecast. Halcyon reports what is recorded in
+              four tables; it does not predict, and none of them hold arrears, defaults or credit scores.
+              The nearest field is <code>customers.risk_band</code>, a static classification set at
+              onboarding - using it as a default predictor would be wrong, so it has not been used.</p>
+            <div class="alts">
+              <button>Show the distribution of customers by risk band</button>
+              <button>Which branches have the highest rejection rate?</button>
+              <button>Compare retail and SME onboarding volumes</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="correction">
+          <div class="correction__h bad">Blocked before execution</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Delete all rejected applications from 2025."</div>
+            <h2 class="correction__t">This would change the data. Halcyon cannot write.</h2>
+            <p class="correction__p">The planner produced a statement beginning <code style="color:var(--claret)">DELETE</code>.
+              The validator rejected it before it reached the database, and the connection's role holds no
+              write grant in any case. Two independent controls, both of which held.</p>
+            <div class="sqlwrap" style="margin-top:17px">
+              <div class="sqlwrap__h"><span>Rejected statement - never executed</span></div>
+              <pre class="sql" style="color:var(--ink-low)"><span style="color:var(--claret)">DELETE FROM</span> onboarding_applications
+<span class="k">WHERE</span> decision = <span class="s">'rejected'</span>
+  <span class="k">AND</span> submitted_at &gt;= <span class="s">DATE '2025-01-01'</span>;</pre>
+              <div style="padding:4px 14px 10px; border-top:1px solid var(--rule)">
+                <div class="chk"><span class="chk__m bad"></span><span><span class="chk__t">Read-only (SELECT)</span><span class="chk__d">Statement verb is DELETE. Write verbs are not permitted.</span></span></div>
+                <div class="chk"><span class="chk__m"></span><span><span class="chk__t">Role grant</span><span class="chk__d">halcyon_ro holds SELECT only - the write would have failed at the database too.</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">What Halcyon can answer</div>
+          <div class="card__b">
+            <p class="minip" style="margin-bottom:11px">Counts, sums, rankings, rates and trends over
+              four tables - customers, branches, onboarding applications and transactions.</p>
+            <p class="minip">It will not forecast, infer causes, or reach outside the schema. When a
+              question needs data that is not there, it says so rather than approximating.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================================================================ ERROR -->
+  <section data-state="error" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Failed</span><span>Trace 7f2a-9d41-ec03</span></div>
+        <div class="correction">
+          <div class="correction__h bad">Query timed out after 5,000 ms</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Show every transaction for all customers since 2019 with running balances."</div>
+            <h2 class="correction__t">The query was valid, but too heavy to finish.</h2>
+            <p class="correction__p">It passed all five safety checks and began executing, then hit the
+              five-second statement timeout while scanning <b style="color:var(--ink)">2,914,330</b> rows in
+              <code>transactions</code> with a window function over the whole table. Nothing was left
+              running. No partial result is shown, because a partial answer to a question about totals
+              is worse than no answer.</p>
+            <div class="sqlwrap" style="margin-top:17px; padding:12px 14px; font-family:var(--mono); font-size:11.5px; color:var(--ink-low); line-height:1.8">
+              <div><span style="color:var(--ink-mid)">error</span> &nbsp;57014 - statement_timeout</div>
+              <div><span style="color:var(--ink-mid)">stage</span> &nbsp;execute - 4 of 6 completed</div>
+              <div><span style="color:var(--ink-mid)">rows scanned</span> &nbsp;2,914,330 of 2,914,330</div>
+            </div>
+            <div class="alts">
+              <button>Narrow it to one year - transactions since January 2025</button>
+              <button>Aggregate instead - monthly totals by segment</button>
+              <button>Retry with a 30-second timeout</button>
+            </div>
+          </div>
+        </div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Why this happened</div>
+          <div class="card__b">
+            <p class="minip" style="margin-bottom:11px">Running balances need a window function over every
+              row in range. Six years of transactions is 2.9m rows, and the window cannot use the index.</p>
+            <p class="minip">The five-second cap is deliberate: it protects the shared read replica from a
+              single expensive question.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script src="../shared/halcyon-data.js"></script>
+<script src="../shared/charts.js"></script>
+<script src="../shared/switcher.js"></script>
+<script>
+(function(){
+  'use strict';
+  var D=window.HALCYON, C=window.HChart, esc=C.esc;
+  var MONO="'IBM Plex Mono', ui-monospace, monospace";
+  var TOK={grid:'#2E2722', axis:'#453B33', text:'#857A70', cats:['#FF9E7A','#8FBF9F','#8FA9C4','#E3746E']};
+
+  var DESK=[
+    {q:'Show monthly onboarding applications by customer segment.', m:'onboarding_applications - bar chart'},
+    {q:'Which branches have the highest rejection rate?',            m:'onboarding_applications + branches - ranked table'},
+    {q:'Compare retail and SME onboarding volumes.',                 m:'onboarding_applications - KPI and bar'},
+    {q:'Show the top five customers by transaction value.',          m:'transactions + customers + branches - table'}
+  ];
+  document.getElementById('b-desk').innerHTML=DESK.map(function(d,i){
+    return '<button><div class="desk__n">0'+(i+1)+'</div><div class="desk__q">'+esc(d.q)+
+           '</div><div class="desk__m">'+esc(d.m)+'</div></button>';
+  }).join('');
+
+  document.getElementById('b-bars').innerHTML=C.groupedBars({
+    width:760,height:250,labels:D.months,series:D.onboarding.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,
+    alt:'Monthly onboarding applications by segment, 2025'});
+  document.getElementById('b-legend').innerHTML=D.onboarding.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  document.getElementById('b-line').innerHTML=C.lineChart({
+    width:760,height:210,labels:D.months,series:D.txnTrend.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,dotFill:'#1B1714',zeroBased:false,
+    tickFormat:function(v){return '\u00a3'+v.toFixed(1)+'m';},
+    alt:'Monthly transaction value for the top three customers'});
+  document.getElementById('b-legend2').innerHTML=D.txnTrend.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  var tc=D.topCustomers;
+  document.getElementById('b-table').innerHTML=
+    '<thead><tr><th class="num" style="text-align:right">#</th><th>Customer</th><th>Segment</th><th>Branch</th>'+
+    '<th class="num" style="text-align:right">Transactions</th><th class="num" style="text-align:right">Total value</th></tr></thead><tbody>'+
+    tc.rows.map(function(r){
+      return '<tr><td class="rank" style="text-align:right">'+r.rank+'</td><td>'+esc(r.customer)+'</td><td>'+
+        esc(r.segment)+'</td><td>'+esc(r.branch)+'</td><td class="num">'+D.fmt.num(r.txns)+
+        '</td><td class="num">'+D.fmt.gbp(r.value)+'</td></tr>';}).join('')+'</tbody>';
+
+  function hi(sql){
+    return esc(sql)
+      .replace(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|ON|AND|OR|AS|DESC|ASC|DATE)\b/g,'<span class="k">$1</span>')
+      .replace(/('[^']*')/g,'<span class="s">$1</span>')
+      .replace(/\b(COUNT|SUM|date_trunc)\b/g,'<span class="f">$1</span>')
+      .replace(/(\$\d)/g,'<span class="f">$1</span>');
+  }
+  document.getElementById('b-sql-1').innerHTML=hi(D.runs.onboarding.sql);
+  document.getElementById('b-sql-2').innerHTML=hi(D.runs.customers.sql);
+
+  function checks(list){return list.map(function(c){
+    return '<div class="chk"><span class="chk__m'+(c.status==='pass'?'':' bad')+'"></span><span>'+
+      '<span class="chk__t">'+esc(c.label)+'</span><span class="chk__d">'+esc(c.detail)+'</span></span></div>';
+  }).join('');}
+  document.getElementById('b-checks-1').innerHTML=checks(D.runs.onboarding.checks);
+  document.getElementById('b-checks-2').innerHTML=checks(D.runs.customers.checks);
+
+  function sources(used){return D.schema.map(function(t){
+    var on=used.indexOf(t.table)>-1;
+    return '<div class="srcrow'+(on?' on':'')+'"><span>'+(on?'<b>'+esc(t.table)+'</b>':esc(t.table))+
+      '</span><em>'+(on?esc(t.rows)+' rows':'not used')+'</em></div>';}).join('');}
+  document.getElementById('b-src-1').innerHTML=sources(['onboarding_applications']);
+  document.getElementById('b-src-2').innerHTML=sources(['transactions','customers','branches']);
+  document.getElementById('b-src-3').innerHTML=sources(['onboarding_applications']);
+
+  var MS=['12 ms','31 ms','204 ms','8 ms','',''];
+  document.getElementById('b-wire').innerHTML=D.stages.map(function(s,i){
+    var cls=i<4?'done':i===4?'now':'idle';
+    return '<div class="wstep '+cls+'"><span class="wstep__ms">'+MS[i]+'</span>'+
+      '<div class="wstep__t">'+esc(s.label)+(i===4?' <span class="blink">...</span>':'')+'</div>'+
+      '<div class="wstep__d">'+esc(i===4?'Role halcyon_ro - 5s timeout - running':s.detail)+'</div></div>';
+  }).join('');
+
+  var STAMP={empty:'Ready','kpi-bar':'Filed 10:42','table-line':'Filed 10:44',
+    thinking:'Filing...',rejected:'2 declined',error:'Failed 57014'};
+  window.HSwitch.init({initial:'kpi-bar',onChange:function(s){
+    document.getElementById('b-stamp').textContent=STAMP[s]||'Ready';}});
+})();
+</script>
+</body>
+</html>

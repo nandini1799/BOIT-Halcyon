@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" data-direction="broadsheet">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — Conversational Data Analyst</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  HALCYON - chosen direction: B · Broadsheet (approved 2026-09-22)
+  Logic 2 — real-world benchmark. Reference: the Financial Times' financial-editorial
+  design language (Origami design system; the FT salmon ground is one of the most
+  recognisable brand colours in finance) rendered as a dark newsroom.
+
+  Form comes from content: a bank analyst's answer is a *briefing*. So the answer is set
+  like a filed story — standfirst, pull figures, a chart with a caption and a source line,
+  and the SQL filed underneath as the correspondent's notes. Serif for prose because prose
+  is meant to be read; monospace only for figures.
+
+  v2 adds the remaining two example questions from the brief, so all four are covered:
+    kpi-bar    · monthly onboarding applications by segment
+    table-line · top five customers by transaction value
+    branches   · branch rejection rates          (new: ranked table + horizontal bars)
+    compare    · retail vs SME onboarding volume (new: head-to-head KPI + paired bars)
+-->
+<link rel="stylesheet" href="../shared/halcyon.css">
+</head>
+<body>
+
+<nav class="switcher" aria-label="Prototype state switcher">
+  <span class="switcher__tag">B · Broadsheet</span>
+  <button class="sbtn" data-state-btn="empty">empty</button>
+  <button class="sbtn" data-state-btn="kpi-bar">kpi + bar</button>
+  <button class="sbtn" data-state-btn="table-line">table + line</button>
+  <button class="sbtn" data-state-btn="branches">branches</button>
+  <button class="sbtn" data-state-btn="compare">compare</button>
+  <button class="sbtn" data-state-btn="thinking">thinking</button>
+  <button class="sbtn" data-state-btn="rejected">rejected</button>
+  <button class="sbtn" data-state-btn="error">error</button>
+  <span class="switcher__hint">arrow keys to step - sample data, fictional bank</span>
+</nav>
+
+<header class="masthead">
+  <div class="mast__name">Halcyon</div>
+  <div class="mast__rule">Conversational data analyst</div>
+  <div class="mast__right">
+    <span class="mast__ro">Read-only connection</span>
+    <span>halcyon_demo</span>
+    <span id="b-stamp">Ready</span>
+  </div>
+</header>
+
+<div class="askbar">
+  <div class="askbar__in">
+    <input type="text" placeholder="Ask about customers, branches, onboarding or transactions..." aria-label="Ask a question">
+    <button class="askbar__go">Ask</button>
+  </div>
+  <div class="askbar__note">
+    <span>Every answer is filed with the query that produced it.</span>
+    <span>Sample data - fictional institution</span>
+  </div>
+</div>
+
+<div class="sheetwrap">
+
+  <!-- ================================================================= EMPTY -->
+  <section data-state="empty" hidden>
+    <div class="lede">
+      <h1 class="lede__h">Ask a question. Get a filed answer.</h1>
+      <p class="lede__p">Halcyon reads four tables of the bank's data, writes the query for you,
+        checks it is safe to run, and files the result with its sources attached - the way a
+        desk would.</p>
+      <div class="deskhead">Today's desk</div>
+      <div class="desk" id="b-desk"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================== KPI + BAR -->
+  <section data-state="kpi-bar" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Onboarding</span><span>Filed 74 ms - 48 rows</span></div>
+        <h1 class="headline">Onboarding climbed through 2025, with retail carrying four fifths of it</h1>
+        <p class="standfirst">The bank took <b>8,378</b> applications across the year, of which retail
+          accounted for <b>6,575</b> - 78.5 per cent of volume. December was the strongest month at
+          <b>983</b>. The sharpest growth came from SME, up <b>81.4 per cent</b> between January and
+          December, from a much smaller base.</p>
+
+        <div class="figs">
+          <div class="fig"><div class="fig__v">8,378</div><div class="fig__l">Total applications</div><div class="fig__d"><span class="up">+12.4%</span> on FY2024</div></div>
+          <div class="fig"><div class="fig__v">983</div><div class="fig__l">Peak month</div><div class="fig__d">December 2025</div></div>
+          <div class="fig"><div class="fig__v">+81.4%</div><div class="fig__l">Fastest segment</div><div class="fig__d"><span class="up">SME</span>, Jan to Dec</div></div>
+        </div>
+
+        <figure class="figure">
+          <div class="figure__h">Applications by month and segment</div>
+          <div class="figure__sub">FY2025 - count of applications</div>
+          <div class="figure__body">
+            <div id="b-bars"></div>
+            <div class="legend" id="b-legend"></div>
+            <div class="figure__src"><span>Source: onboarding_applications</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-1" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-1" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>cost 412.8</span></div>
+                <pre class="sql" id="b-sql-1"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-1"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-1"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">Why a bar chart</div>
+          <div class="card__b">
+            <p class="minih">Category across time</p>
+            <p class="minip">The question asks for a count grouped by month and by segment. Twelve
+              time buckets and four categories reads best as grouped bars; a line would imply the
+              segments are continuous measures rather than counts.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================================================== TABLE + LINE -->
+  <section data-state="table-line" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Transactions</span><span>Filed 318 ms - 5 rows - 3 tables</span></div>
+        <h1 class="headline">Ardent Logistics leads the book on value, Pellworth on size per trade</h1>
+        <p class="standfirst">The five largest customers by transaction value moved <b>&pound;60.86m</b>
+          between them in FY2025, 8.2 per cent of total debit value. Ardent Logistics tops the table at
+          <b>&pound;18.74m</b>. Pellworth Holdings is the outlier: second by value on the fewest
+          transactions of the five, averaging <b>&pound;15.5k</b> a transaction.</p>
+
+        <figure class="figure">
+          <div class="figure__h">Top five customers by transaction value</div>
+          <div class="figure__sub">FY2025 - debit transactions only</div>
+          <div class="figure__body" style="padding:14px 4px 8px">
+            <table class="data" id="b-table"></table>
+            <div class="figure__src" style="margin:9px 10px 0"><span>Source: transactions, customers, branches</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <figure class="figure">
+          <div class="figure__h">Monthly transaction value</div>
+          <div class="figure__sub">Top three customers - &pound; millions</div>
+          <div class="figure__body">
+            <div id="b-line"></div>
+            <div class="legend" id="b-legend2"></div>
+            <div class="figure__src"><span>Source: transactions</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-2" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-2" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>hash join x2 - cost 9,214.0</span></div>
+                <pre class="sql" id="b-sql-2"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-2"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-2"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">Assumptions made</div>
+          <div class="card__b">
+            <p class="minih">Three, all reversible</p>
+            <p class="minip">"Top five" read as ORDER BY total value DESC LIMIT 5. "Transaction value"
+              read as the sum of debit amounts, not net flow. The period defaults to FY2025 because the
+              question named none.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================= BRANCHES -->
+  <section data-state="branches" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Onboarding quality</span><span>Filed 112 ms - 6 rows - 2 tables</span></div>
+        <h1 class="headline">Dalston Junction rejects nearly a quarter of what it takes in</h1>
+        <p class="standfirst">Across the six branches with at least 100 decided applications,
+          rejection rates run from <b>8.5</b> to <b>24.0 per cent</b> - a spread of nearly three to one.
+          Dalston Junction is the outlier at <b>24.0 per cent</b>, almost three times Mayfair's
+          <b>8.5</b>. The network turned down <b>1,155</b> of <b>7,635</b> applications overall,
+          a blended rate of <b>15.1 per cent</b>.</p>
+
+        <div class="figs">
+          <div class="fig"><div class="fig__v">24.0%</div><div class="fig__l">Highest rate</div><div class="fig__d"><span class="down">Dalston Junction</span></div></div>
+          <div class="fig"><div class="fig__v">15.1%</div><div class="fig__l">Network blended</div><div class="fig__d">1,155 of 7,635</div></div>
+          <div class="fig"><div class="fig__v">2.8&times;</div><div class="fig__l">Spread</div><div class="fig__d">highest over lowest</div></div>
+        </div>
+
+        <figure class="figure">
+          <div class="figure__h">Rejection rate by branch</div>
+          <div class="figure__sub">FY2025 - branches with 100 or more decided applications</div>
+          <div class="figure__body">
+            <div id="b-hbars"></div>
+            <div class="figure__src"><span>Source: onboarding_applications, branches</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <figure class="figure">
+          <div class="figure__h">The underlying counts</div>
+          <div class="figure__sub">Ranked by rejection rate, descending</div>
+          <div class="figure__body" style="padding:14px 4px 8px">
+            <table class="data" id="b-branchtable"></table>
+            <div class="figure__src" style="margin:9px 10px 0"><span>Source: onboarding_applications, branches</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-3" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-3" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>cost 1,884.2</span></div>
+                <pre class="sql" id="b-sql-3"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-3"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-4"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">Assumptions made</div>
+          <div class="card__b">
+            <p class="minih">A floor was applied</p>
+            <p class="minip">Branches with fewer than 100 decided applications are excluded. Without a
+              floor, a branch with four applications and one rejection would top the table at 25 per
+              cent, which is noise rather than signal. Pending applications are excluded from both
+              numerator and denominator.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__h">Why horizontal bars</div>
+          <div class="card__b">
+            <p class="minih">Ranking, not time</p>
+            <p class="minip">Six named categories compared on one measure. Horizontal bars give the
+              long branch names room to sit as readable labels, and sorting them by value makes the
+              ranking the shape of the chart.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================== COMPARE -->
+  <section data-state="compare" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Segment comparison</span><span>Filed 88 ms - 24 rows</span></div>
+        <h1 class="headline">Retail is three times SME by volume, but SME is growing faster</h1>
+        <p class="standfirst">Retail took <b>6,575</b> applications in FY2025 against SME's <b>1,974</b>,
+          a ratio of <b>3.3 to one</b>. The direction of travel differs: SME grew <b>81.4 per cent</b>
+          between January and December, against retail's <b>63.6</b>. Retail also converts better,
+          approving <b>84.1 per cent</b> against SME's <b>78.6</b>, and decides in a quarter of the time.</p>
+
+        <div class="versus">
+          <div class="vs">
+            <div class="vs__n">Retail</div>
+            <div class="vs__v">6,575</div>
+            <div class="vs__bar"><i style="width:100%; background:var(--salmon)"></i></div>
+            <div class="vs__r">
+              <div class="vs__line"><span>Growth, Jan to Dec</span><b>+63.6%</b></div>
+              <div class="vs__line"><span>Approval rate</span><b>84.1%</b></div>
+              <div class="vs__line"><span>Median time to decision</span><b>2.4 days</b></div>
+              <div class="vs__line"><span>Share of all applications</span><b>78.5%</b></div>
+            </div>
+          </div>
+          <div class="versus__spine"></div>
+          <div class="vs">
+            <div class="vs__n">SME</div>
+            <div class="vs__v">1,974</div>
+            <div class="vs__bar"><i style="width:30%; background:var(--sage)"></i></div>
+            <div class="vs__r">
+              <div class="vs__line"><span>Growth, Jan to Dec</span><b style="color:var(--sage)">+81.4%</b></div>
+              <div class="vs__line"><span>Approval rate</span><b>78.6%</b></div>
+              <div class="vs__line"><span>Median time to decision</span><b>6.1 days</b></div>
+              <div class="vs__line"><span>Share of all applications</span><b>23.6%</b></div>
+            </div>
+          </div>
+        </div>
+
+        <figure class="figure">
+          <div class="figure__h">Monthly applications, retail against SME</div>
+          <div class="figure__sub">FY2025 - note the axis: retail dwarfs SME in absolute terms</div>
+          <div class="figure__body">
+            <div id="b-cmpbars"></div>
+            <div class="legend" id="b-cmplegend"></div>
+            <div class="figure__src"><span>Source: onboarding_applications</span><span>Halcyon</span></div>
+          </div>
+        </figure>
+
+        <div class="notes">
+          <button class="notes__t" data-drawer="b-work-4" aria-expanded="false">
+            <span class="chev">&rsaquo;</span><span>Notes on this answer</span>
+            <span class="verdict">Validated - read-only</span>
+          </button>
+          <div class="notes__b" id="b-work-4" hidden>
+            <div class="notes__cols">
+              <div class="sqlwrap">
+                <div class="sqlwrap__h"><span>Query as executed</span><span>cost 596.4</span></div>
+                <pre class="sql" id="b-sql-4"></pre>
+              </div>
+              <div>
+                <div class="notes__h">Safety checks - 5 of 5</div>
+                <div id="b-checks-4"></div>
+              </div>
+            </div>
+          </div>
+          <div class="byline">
+            <button>Copy answer</button><button>Copy data - CSV</button>
+            <button>Copy SQL</button><button>Download chart</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-5"></div>
+        </div>
+        <div class="card">
+          <div class="card__h">A caution on the ratio</div>
+          <div class="card__b">
+            <p class="minih">Growth rates flatter small bases</p>
+            <p class="minip">SME's 81.4 per cent growth is 96 additional applications a month. Retail's
+              63.6 per cent is 262. The percentage favours SME; the absolute number favours retail.
+              Both are shown because quoting either alone would mislead.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================= THINKING -->
+  <section data-state="thinking" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Filing</span><span id="b-elapsed">255 ms elapsed</span></div>
+        <h1 class="headline" style="color:var(--ink-mid)">Show monthly onboarding applications by customer segment.</h1>
+        <div class="wire" id="b-wire" style="margin-top:26px"></div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Sources drawn on</div>
+          <div class="card__b" id="b-src-3"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================================================= REJECTED -->
+  <section data-state="rejected" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Not filed</span><span>2 questions declined</span></div>
+
+        <div class="correction" style="margin-bottom:26px">
+          <div class="correction__h warn">Cannot be answered from this data</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Which customers are likely to default next quarter?"</div>
+            <h2 class="correction__t">There is no credit-risk data in the connected schema.</h2>
+            <p class="correction__p">The question asks for a forecast. Halcyon reports what is recorded in
+              four tables; it does not predict, and none of them hold arrears, defaults or credit scores.
+              The nearest field is <code>customers.risk_band</code>, a static classification set at
+              onboarding - using it as a default predictor would be wrong, so it has not been used.</p>
+            <div class="alts">
+              <button>Show the distribution of customers by risk band</button>
+              <button>Which branches have the highest rejection rate?</button>
+              <button>Compare retail and SME onboarding volumes</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="correction">
+          <div class="correction__h bad">Blocked before execution</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Delete all rejected applications from 2025."</div>
+            <h2 class="correction__t">This would change the data. Halcyon cannot write.</h2>
+            <p class="correction__p">The planner produced a statement beginning <code style="color:var(--claret)">DELETE</code>.
+              The validator rejected it before it reached the database, and the connection's role holds no
+              write grant in any case. Two independent controls, both of which held.</p>
+            <div class="sqlwrap" style="margin-top:17px">
+              <div class="sqlwrap__h"><span>Rejected statement - never executed</span></div>
+              <pre class="sql" style="color:var(--ink-low)"><span style="color:var(--claret)">DELETE FROM</span> onboarding_applications
+<span class="k">WHERE</span> decision = <span class="s">'rejected'</span>
+  <span class="k">AND</span> submitted_at &gt;= <span class="s">DATE '2025-01-01'</span>;</pre>
+              <div style="padding:4px 14px 10px; border-top:1px solid var(--rule)">
+                <div class="chk"><span class="chk__m bad"></span><span><span class="chk__t">Read-only (SELECT)</span><span class="chk__d">Statement verb is DELETE. Write verbs are not permitted.</span></span></div>
+                <div class="chk"><span class="chk__m"></span><span><span class="chk__t">Role grant</span><span class="chk__d">halcyon_ro holds SELECT only - the write would have failed at the database too.</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">What Halcyon can answer</div>
+          <div class="card__b">
+            <p class="minip" style="margin-bottom:11px">Counts, sums, rankings, rates and trends over
+              four tables - customers, branches, onboarding applications and transactions.</p>
+            <p class="minip">It will not forecast, infer causes, or reach outside the schema. When a
+              question needs data that is not there, it says so rather than approximating.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================================================================ ERROR -->
+  <section data-state="error" hidden>
+    <div class="grid">
+      <article>
+        <div class="kicker"><span>Failed</span><span>Trace 7f2a-9d41-ec03</span></div>
+        <div class="correction">
+          <div class="correction__h bad">Query timed out after 5,000 ms</div>
+          <div class="correction__b">
+            <div style="font-family:var(--mono); font-size:11.5px; color:var(--ink-low); margin-bottom:13px">
+              Asked: "Show every transaction for all customers since 2019 with running balances."</div>
+            <h2 class="correction__t">The query was valid, but too heavy to finish.</h2>
+            <p class="correction__p">It passed all five safety checks and began executing, then hit the
+              five-second statement timeout while scanning <b style="color:var(--ink)">2,914,330</b> rows in
+              <code>transactions</code> with a window function over the whole table. Nothing was left
+              running. No partial result is shown, because a partial answer to a question about totals
+              is worse than no answer.</p>
+            <div class="sqlwrap" style="margin-top:17px; padding:12px 14px; font-family:var(--mono); font-size:11.5px; color:var(--ink-low); line-height:1.8">
+              <div><span style="color:var(--ink-mid)">error</span> &nbsp;57014 - statement_timeout</div>
+              <div><span style="color:var(--ink-mid)">stage</span> &nbsp;execute - 4 of 6 completed</div>
+              <div><span style="color:var(--ink-mid)">rows scanned</span> &nbsp;2,914,330 of 2,914,330</div>
+            </div>
+            <div class="alts">
+              <button>Narrow it to one year - transactions since January 2025</button>
+              <button>Aggregate instead - monthly totals by segment</button>
+              <button>Retry with a 30-second timeout</button>
+            </div>
+          </div>
+        </div>
+      </article>
+      <aside class="rail">
+        <div class="card">
+          <div class="card__h">Why this happened</div>
+          <div class="card__b">
+            <p class="minip" style="margin-bottom:11px">Running balances need a window function over every
+              row in range. Six years of transactions is 2.9m rows, and the window cannot use the index.</p>
+            <p class="minip">The five-second cap is deliberate: it protects the shared read replica from a
+              single expensive question.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script src="../shared/halcyon-data.js"></script>
+<script src="../shared/charts.js"></script>
+<script src="../shared/switcher.js"></script>
+<script>
+(function(){
+  'use strict';
+  var D=window.HALCYON, C=window.HChart, esc=C.esc;
+  var MONO="'IBM Plex Mono', ui-monospace, monospace";
+  var TOK={grid:'#2E2722', axis:'#453B33', text:'#857A70', cats:['#FF9E7A','#8FBF9F','#8FA9C4','#E3746E']};
+
+  var DESK=[
+    {s:'kpi-bar',    q:'Show monthly onboarding applications by customer segment.', m:'onboarding_applications - bar chart'},
+    {s:'branches',   q:'Which branches have the highest rejection rate?',            m:'onboarding_applications + branches - ranked table'},
+    {s:'compare',    q:'Compare retail and SME onboarding volumes.',                 m:'onboarding_applications - head to head'},
+    {s:'table-line', q:'Show the top five customers by transaction value.',          m:'transactions + customers + branches - table'}
+  ];
+  document.getElementById('b-desk').innerHTML=DESK.map(function(d,i){
+    return '<button data-state-btn="'+d.s+'"><div class="desk__n">0'+(i+1)+'</div><div class="desk__q">'+
+           esc(d.q)+'</div><div class="desk__m">'+esc(d.m)+'</div></button>';
+  }).join('');
+
+  document.getElementById('b-bars').innerHTML=C.groupedBars({
+    width:760,height:250,labels:D.months,series:D.onboarding.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,
+    alt:'Monthly onboarding applications by segment, 2025'});
+  document.getElementById('b-legend').innerHTML=D.onboarding.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  document.getElementById('b-line').innerHTML=C.lineChart({
+    width:760,height:210,labels:D.months,series:D.txnTrend.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,dotFill:'#1B1714',zeroBased:false,
+    tickFormat:function(v){return '\u00a3'+v.toFixed(1)+'m';},
+    alt:'Monthly transaction value for the top three customers'});
+  document.getElementById('b-legend2').innerHTML=D.txnTrend.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  var tc=D.topCustomers;
+  document.getElementById('b-table').innerHTML=
+    '<thead><tr><th class="num" style="text-align:right">#</th><th>Customer</th><th>Segment</th><th>Branch</th>'+
+    '<th class="num" style="text-align:right">Transactions</th><th class="num" style="text-align:right">Total value</th></tr></thead><tbody>'+
+    tc.rows.map(function(r){
+      return '<tr><td class="rank" style="text-align:right">'+r.rank+'</td><td>'+esc(r.customer)+'</td><td>'+
+        esc(r.segment)+'</td><td>'+esc(r.branch)+'</td><td class="num">'+D.fmt.num(r.txns)+
+        '</td><td class="num">'+D.fmt.gbp(r.value)+'</td></tr>';}).join('')+'</tbody>';
+
+  function hi(sql){
+    return esc(sql)
+      .replace(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|ON|AND|OR|AS|DESC|ASC|DATE)\b/g,'<span class="k">$1</span>')
+      .replace(/('[^']*')/g,'<span class="s">$1</span>')
+      .replace(/\b(COUNT|SUM|date_trunc)\b/g,'<span class="f">$1</span>')
+      .replace(/(\$\d)/g,'<span class="f">$1</span>');
+  }
+  document.getElementById('b-sql-1').innerHTML=hi(D.runs.onboarding.sql);
+  document.getElementById('b-sql-2').innerHTML=hi(D.runs.customers.sql);
+  document.getElementById('b-sql-3').innerHTML=hi(D.runs.branches.sql);
+  document.getElementById('b-sql-4').innerHTML=hi(D.runs.compare.sql);
+
+  function checks(list){return list.map(function(c){
+    return '<div class="chk"><span class="chk__m'+(c.status==='pass'?'':' bad')+'"></span><span>'+
+      '<span class="chk__t">'+esc(c.label)+'</span><span class="chk__d">'+esc(c.detail)+'</span></span></div>';
+  }).join('');}
+  document.getElementById('b-checks-1').innerHTML=checks(D.runs.onboarding.checks);
+  document.getElementById('b-checks-2').innerHTML=checks(D.runs.customers.checks);
+  document.getElementById('b-checks-3').innerHTML=checks(D.runs.branches.checks);
+  document.getElementById('b-checks-4').innerHTML=checks(D.runs.compare.checks);
+
+  /* ---- branches: ranked horizontal bars + the counts behind them ---- */
+  document.getElementById('b-hbars').innerHTML=C.hBars({
+    width:760, height:176, padL:132, padR:52,
+    rows:D.branches.rows.map(function(r){
+      return {label:r.branch, value:r.rate,
+              color:r.rate>=20?'#E3746E':r.rate>=13?'#FF9E7A':'#8FBF9F'};
+    }),
+    track:'#231D19', colors:['#FF9E7A'], text:'#B8ABA0', valueText:'#F5EDE6', font:MONO,
+    tickFormat:function(v){return v.toFixed(1)+'%';},
+    alt:'Rejection rate by branch, FY2025'});
+
+  document.getElementById('b-branchtable').innerHTML=
+    '<thead><tr><th>Branch</th><th class="num" style="text-align:right">Applications</th>'+
+    '<th class="num" style="text-align:right">Rejected</th>'+
+    '<th class="num" style="text-align:right">Rejection rate</th></tr></thead><tbody>'+
+    D.branches.rows.map(function(r){
+      return '<tr><td>'+esc(r.branch)+'</td><td class="num">'+D.fmt.num(r.apps)+
+        '</td><td class="num">'+D.fmt.num(r.rejected)+'</td><td class="num">'+
+        D.fmt.pct(r.rate)+'</td></tr>';
+    }).join('')+'</tbody>';
+
+  /* ---- compare: paired bars, two cohorts only ---- */
+  document.getElementById('b-cmpbars').innerHTML=C.groupedBars({
+    width:760, height:238, labels:D.months, series:D.retailVsSme.series,
+    colors:['#FF9E7A','#8FBF9F'], grid:TOK.grid, axis:TOK.axis, text:TOK.text, font:MONO,
+    alt:'Monthly onboarding applications, retail against SME, 2025'});
+  document.getElementById('b-cmplegend').innerHTML=
+    ['#FF9E7A','#8FBF9F'].map(function(c,i){
+      return '<span><i style="background:'+c+'"></i>'+esc(D.retailVsSme.series[i].label)+'</span>';
+    }).join('');
+
+  function sources(used){return D.schema.map(function(t){
+    var on=used.indexOf(t.table)>-1;
+    return '<div class="srcrow'+(on?' on':'')+'"><span>'+(on?'<b>'+esc(t.table)+'</b>':esc(t.table))+
+      '</span><em>'+(on?esc(t.rows)+' rows':'not used')+'</em></div>';}).join('');}
+  document.getElementById('b-src-1').innerHTML=sources(['onboarding_applications']);
+  document.getElementById('b-src-2').innerHTML=sources(['transactions','customers','branches']);
+  document.getElementById('b-src-3').innerHTML=sources(['onboarding_applications']);
+  document.getElementById('b-src-4').innerHTML=sources(['onboarding_applications','branches']);
+  document.getElementById('b-src-5').innerHTML=sources(['onboarding_applications']);
+
+  var MS=['12 ms','31 ms','204 ms','8 ms','',''];
+  document.getElementById('b-wire').innerHTML=D.stages.map(function(s,i){
+    var cls=i<4?'done':i===4?'now':'idle';
+    return '<div class="wstep '+cls+'"><span class="wstep__ms">'+MS[i]+'</span>'+
+      '<div class="wstep__t">'+esc(s.label)+(i===4?' <span class="blink">...</span>':'')+'</div>'+
+      '<div class="wstep__d">'+esc(i===4?'Role halcyon_ro - 5s timeout - running':s.detail)+'</div></div>';
+  }).join('');
+
+  var STAMP={empty:'Ready','kpi-bar':'Filed 10:42','table-line':'Filed 10:44',
+    branches:'Filed 10:46',compare:'Filed 10:48',
+    thinking:'Filing...',rejected:'2 declined',error:'Failed 57014'};
+  window.HSwitch.init({initial:'kpi-bar',onChange:function(s){
+    document.getElementById('b-stamp').textContent=STAMP[s]||'Ready';}});
+})();
+</script>
+</body>
+</html>

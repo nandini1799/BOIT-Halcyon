@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — three directions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0C0D10; --panel:#141619; --line:#232730; --line2:#333945;
+    --ink:#ECEEF1; --mid:#A2A9B4; --low:#727A86;
+    --a:#FFB454; --b:#FF9E7A; --c:#E4F04A;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --sans:'Hanken Grotesk',-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+  :focus-visible{outline:2px solid var(--c);outline-offset:2px}
+  .wrap{max-width:1340px;margin:0 auto;padding:44px 32px 80px}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.025em;margin:0 0 10px}
+  .sub{color:var(--mid);max-width:70ch;margin:0 0 8px;font-size:16px}
+  .meta{font-family:var(--mono);font-size:11.5px;color:var(--low);margin-bottom:34px}
+  .meta b{color:#63D19E;font-weight:400}
+
+  .bar{display:flex;gap:2px;position:sticky;top:0;z-index:20;background:var(--bg);
+       padding:12px 0 12px;border-bottom:1px solid var(--line);margin-bottom:26px;flex-wrap:wrap}
+  .bar button{font-family:var(--mono);font-size:11.5px;padding:7px 13px;border:1px solid var(--line2);
+    background:none;color:var(--mid);cursor:pointer}
+  .bar button:hover{color:var(--ink)}
+  .bar button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:500}
+  .bar .sp{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--low);align-self:center}
+
+  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+  .col{border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
+  .col__h{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+  .dot{width:9px;height:9px;flex:none}
+  .col__n{font-weight:600;font-size:15.5px}
+  .col__l{font-family:var(--mono);font-size:10px;color:var(--low);margin-left:auto;text-transform:uppercase;letter-spacing:.08em}
+  .shot{display:block;width:100%;border-bottom:1px solid var(--line);background:#000}
+  .col__b{padding:14px 15px;flex:1}
+  .col__b p{margin:0 0 10px;font-size:13.5px;color:var(--mid);line-height:1.6}
+  .col__b p:last-child{margin-bottom:0}
+  .col__b b{color:var(--ink);font-weight:600}
+  .tagline{font-family:var(--mono);font-size:11px;color:var(--low);padding:0 15px 13px}
+  .open{display:block;padding:10px;text-align:center;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11px;color:var(--mid);text-decoration:none}
+  .open:hover{background:var(--line);color:var(--ink)}
+
+  h2{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:46px 0 14px;
+     padding-bottom:9px;border-bottom:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--low);padding:9px 12px;border-bottom:1px solid var(--line2);font-weight:500}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--mid);vertical-align:top}
+  td b{color:var(--ink);font-weight:600}
+  .w{color:var(--c)!important}
+  ul{margin:8px 0 0;padding-left:19px;color:var(--mid);font-size:14px;line-height:1.7}
+  li{margin-bottom:7px}
+  code{font-family:var(--mono);font-size:.88em;color:var(--c)}
+  .ask{border:1px solid var(--line2);background:var(--panel);padding:20px 22px;margin-top:34px}
+  .ask h3{margin:0 0 10px;font-size:17px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Halcyon &mdash; three directions</h1>
+  <p class="sub">Conversational data analyst for a fictional bank. Same data, same chart engine,
+     three different answers to one question: <b>where does the audit trail live?</b></p>
+  <p class="meta">Dark theme &middot; six states each &middot; impeccable <b>0 anti-patterns</b>
+     &middot; <b>0 console errors</b> &middot; 21 screenshots</p>
+
+  <div class="bar" id="bar"></div>
+  <div class="row" id="row"></div>
+
+  <h2>How they differ</h2>
+  <table>
+    <thead><tr><th>&nbsp;</th><th>A &middot; Instrument</th><th>B &middot; Broadsheet</th><th>C &middot; Vault</th></tr></thead>
+    <tbody>
+      <tr><td><b>Logic</b></td><td>Seconds roulette &rarr; #16 Terminal-Core</td><td>Real-world benchmark &rarr; Financial Times</td><td>Best studio &rarr; Bloomberg x Teenage Engineering</td></tr>
+      <tr><td><b>Skeleton</b></td><td>Left schema rail + centred transcript + bottom input</td><td>Top masthead + top input + prose column + right rail</td><td>Header strip + split body + bottom status bar</td></tr>
+      <tr><td><b>Audit trail</b></td><td>Drawer, closed by default</td><td>Filed notes + permanent sources card</td><td class="w">Permanent column, never hidden</td></tr>
+      <tr><td><b>Voice</b></td><td>Machine reporting a result</td><td>Correspondent filing a story</td><td>Instrument showing its state</td></tr>
+      <tr><td><b>Type</b></td><td>JetBrains Mono + Hanken Grotesk</td><td>Source Serif 4 + Source Sans 3</td><td>Archivo + Roboto Mono</td></tr>
+      <tr><td><b>Dark base</b></td><td>Blue-charcoal <code>#0B0D14</code></td><td>Warm espresso <code>#13100E</code></td><td>Neutral graphite <code>#101215</code></td></tr>
+      <tr><td><b>Accent</b></td><td>Amber <code>#FFB454</code></td><td>Salmon <code>#FF9E7A</code></td><td>Acid yellow <code>#E4F04A</code></td></tr>
+      <tr><td><b>Density</b></td><td>Medium</td><td>Low &mdash; reading-first</td><td>High</td></tr>
+      <tr><td><b>Rebuild cost in 60 min</b></td><td class="w">Lowest</td><td>Highest &mdash; prose is load-bearing</td><td>Medium-high</td></tr>
+      <tr><td><b>Best at</b></td><td>Looking like a real developer tool</td><td>Making the answer persuasive</td><td class="w">Proving the SQL is safe</td></tr>
+      <tr><td><b>Weakest at</b></td><td>Being memorable</td><td>Signalling engineering rigour</td><td>Breathing room</td></tr>
+    </tbody>
+  </table>
+
+  <h2>My recommendation</h2>
+  <p class="sub" style="margin-bottom:14px">If the goal is to score well on this specific brief,
+     I would take <b>C &middot; Vault</b>, and steal one thing from each of the others.</p>
+  <ul>
+    <li><b>Why C.</b> The brief's most heavily weighted line is <em>"should not allow unrestricted
+        AI-generated SQL to execute without validation or control."</em> C is the only direction where
+        an interviewer sees the generated SQL, the routed tables, the five safety checks and the
+        read-only status <em>without clicking anything</em>. The design itself is the evidence.</li>
+    <li><b>Steal from A:</b> the schema rail. Showing which of the four tables were used, and which
+        were skipped, makes the routing step visible &mdash; another explicit requirement.</li>
+    <li><b>Steal from B:</b> the "assumptions made" card. Stating that "top five" was read as
+        <code>ORDER BY value DESC LIMIT 5</code> is the single most senior-looking detail in all
+        three mocks.</li>
+    <li><b>Counter-argument, honestly.</b> If the panel is non-technical, B wins on first impression.
+        C looks like a tool for engineers; B looks like an answer for a manager.</li>
+  </ul>
+
+  <div class="ask">
+    <h3>What I need from you</h3>
+    <p class="sub" style="margin:0">Pick one, or mix them &mdash; "C's audit column with B's prose" is a
+      perfectly good answer and does not restart the process. Once you choose, I will build the
+      winner out properly, delete the other two, and optionally port it to a real React + TypeScript
+      shell with Recharts so you have a running head start.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var STATES=[
+    ['kpi-bar','KPI + bar chart'],['table-line','Table + line chart'],
+    ['empty','Empty / first run'],['thinking','Thinking'],
+    ['rejected','Rejected question'],['error','Technical error'],
+    ['drawer-open','Drawer opened']
+  ];
+  var DIRS=[
+    {k:'a',n:'A - Instrument',c:'var(--a)',l:'roulette #16',f:'a-instrument.html',
+     t:'Terminal-core. Monospace as protagonist.',
+     d:['<b>The ledger printout.</b> A fixed schema rail on the left shows which tables the question touched. The answer is a single sheet: prose, KPI row, chart, then a drawer holding the SQL.',
+        'Cheapest to rebuild under time pressure, and it looks unmistakably like a developer tool.']},
+    {k:'b',n:'B - Broadsheet',c:'var(--b)',l:'benchmark: FT',f:'b-broadsheet.html',
+     t:'Financial editorial, rendered dark.',
+     d:['<b>The filed story.</b> Input sits at the top under the masthead. Every answer gets a headline, a standfirst, pull figures and a source line, with the SQL filed underneath as the correspondent notes.',
+        'The most persuasive read of the three. Also the slowest to rebuild, because the writing is doing real work.']},
+    {k:'c',n:'C - Vault',c:'var(--c)',l:'studio: Bloomberg x TE',f:'c-vault.html',
+     t:'Terminal density, industrial restraint.',
+     d:['<b>The instrument panel.</b> The audit column is permanent, not a drawer. SQL, five safety checks, routing and a status bar are on screen at all times, and they re-bind on failures too.',
+        'The strongest answer to the brief hardest requirement, at the cost of 372px of width.']}
+  ];
+  var bar=document.getElementById('bar'), row=document.getElementById('row'), cur='kpi-bar';
+
+  bar.innerHTML=STATES.map(function(s){
+    return '<button data-s="'+s[0]+'">'+s[1]+'</button>';
+  }).join('')+'<span class="sp">same data in all three</span>';
+
+  function render(){
+    row.innerHTML=DIRS.map(function(d){
+      return '<div class="col">'+
+        '<div class="col__h"><span class="dot" style="background:'+d.c+'"></span>'+
+          '<span class="col__n">'+d.n+'</span><span class="col__l">'+d.l+'</span></div>'+
+        '<a href="design-demos/'+d.f+'" target="_blank">'+
+          '<img class="shot" src="shots/'+d.k+'-'+cur+'.png" alt="'+d.n+' - '+cur+'" loading="lazy">'+
+        '</a>'+
+        '<div class="tagline">'+d.t+'</div>'+
+        '<div class="col__b">'+d.d.map(function(p){return '<p>'+p+'</p>';}).join('')+'</div>'+
+        '<a class="open" href="design-demos/'+d.f+'" target="_blank">Open the real prototype &rarr;</a>'+
+      '</div>';
+    }).join('');
+    Array.prototype.forEach.call(bar.querySelectorAll('button'),function(b){
+      b.classList.toggle('on', b.getAttribute('data-s')===cur);
+    });
+  }
+  bar.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    cur=b.getAttribute('data-s'); render();
+  });
+  render();
+  window.__ready=true;
+})();
+</script>
+</body>
+</html>

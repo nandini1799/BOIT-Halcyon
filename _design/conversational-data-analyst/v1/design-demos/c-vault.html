@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en" data-direction="vault">
+<head>
+<meta charset="utf-8">
+<title>Halcyon — Direction C · Vault</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!--
+  DIRECTION C · "Vault"
+  Logic 3 — best studio for this specific brief. If budget were unlimited: the answer is
+  not a branding shop, it is whoever designs trading terminals. So: Bloomberg's information
+  density and always-on status discipline, restrained by Teenage Engineering's industrial
+  calm (one accent, hard edges, everything labelled, nothing decorative).
+
+  Form comes from content: a query is a *transaction against a system*, so the interface is
+  built as instrument panel + audit strip. The safety verdict is never hidden behind a
+  drawer here - it is a permanent status bar the eye can check without asking. The drawer
+  holds the detail, not the verdict.
+-->
+<style>
+  :root{
+    --bg:        #101215;
+    --deep:      #0A0C0E;
+    --panel:     #171A1F;
+    --panel-2:   #1D2127;
+    --line:      #23272E;
+    --line-2:    #333941;
+    --ink:       #E8EBEE;   /* 14.2:1 */
+    --ink-mid:   #A3AAB4;   /* 7.5:1  */
+    --ink-low:   #737C87;   /* 4.6:1  floor */
+    --signal:    #E4F04A;   /* acid yellow. one accent, means: system state */
+    --signal-dk: #3A3E12;
+    --green:     #63D19E;
+    --blue:      #6FA8DC;
+    --violet:    #A98CE0;
+    --red:       #F0736B;
+    --sans:'Archivo', -apple-system, sans-serif;
+    --mono:'Roboto Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:13.5px; line-height:1.45}
+  ::selection{background:var(--signal-dk); color:var(--signal)}
+  :focus-visible{outline:2px solid var(--signal); outline-offset:1px}
+  .mono{font-family:var(--mono)}
+
+  .switcher{position:sticky; top:0; z-index:60; display:flex; align-items:center; gap:1px;
+    padding:7px 14px; background:var(--deep); border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:10.5px}
+  .switcher__tag{color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin-right:14px; font-weight:700}
+  .switcher__hint{margin-left:auto; color:var(--ink-low)}
+  .sbtn{appearance:none; border:0; background:none; color:var(--ink-low); font:inherit; padding:5px 9px; cursor:pointer}
+  .sbtn:hover{color:var(--ink-mid); background:var(--panel)}
+  .sbtn.is-active{color:var(--deep); background:var(--signal); font-weight:700}
+
+  /* ------------------------------------------------------------------ skeleton */
+  /* Skeleton C: three horizontal bands - header strip, split body (answer | audit),
+     permanent status bar pinned to the bottom. Input sits inside the header strip.
+     No side nav, no sticky rail: the split IS the layout. */
+  .shell{display:flex; flex-direction:column; height:calc(100vh - 34px)}
+
+  .strip{display:flex; align-items:stretch; border-bottom:1px solid var(--line); background:var(--deep)}
+  .strip__brand{display:flex; align-items:center; gap:9px; padding:0 16px; border-right:1px solid var(--line)}
+  .logo{width:17px; height:17px; background:var(--signal); position:relative; flex:none}
+  .logo::after{content:''; position:absolute; inset:5px 5px auto auto; width:7px; height:7px; background:var(--deep)}
+  .logo__t{font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:-.01em}
+  .strip__ask{flex:1; display:flex; align-items:center; gap:11px; padding:0 16px; min-width:0}
+  .strip__ask input{flex:1; background:none; border:0; outline:0; color:var(--ink);
+    font-family:var(--mono); font-size:14px; padding:13px 0}
+  .strip__ask input::placeholder{color:var(--ink-low)}
+  .strip__ask .pmt{color:var(--signal); font-family:var(--mono); font-weight:700; flex:none}
+  .strip__meta{display:flex; align-items:center; gap:0; border-left:1px solid var(--line)}
+  .meta{padding:0 15px; display:flex; flex-direction:column; justify-content:center;
+    border-right:1px solid var(--line); min-width:96px}
+  .meta:last-child{border-right:0}
+  .meta__l{font-family:var(--mono); font-size:9px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-low)}
+  .meta__v{font-family:var(--mono); font-size:12px; color:var(--ink); margin-top:2px; font-variant-numeric:tabular-nums}
+  .meta__v.ok{color:var(--green)} .meta__v.warn{color:var(--signal)} .meta__v.bad{color:var(--red)}
+
+  .body{flex:1; display:grid; grid-template-columns:1fr 372px; min-height:0}
+  .left{overflow:auto; padding:0; min-width:0}
+  .right{border-left:1px solid var(--line); background:var(--deep); overflow:auto; display:flex; flex-direction:column}
+
+  /* -------------------------------------------------------------- panel system */
+  .panel{border-bottom:1px solid var(--line)}
+  .panel__h{display:flex; align-items:center; gap:10px; padding:7px 16px; background:var(--deep);
+    border-bottom:1px solid var(--line); font-family:var(--mono); font-size:9.5px;
+    letter-spacing:.13em; text-transform:uppercase; color:var(--ink-low)}
+  .panel__h b{color:var(--signal); font-weight:500}
+  .panel__h .r{margin-left:auto; color:var(--ink-low)}
+  .panel__b{padding:16px}
+
+  .qline{display:flex; gap:11px; align-items:baseline; font-family:var(--mono); font-size:14px; color:var(--ink)}
+  .qline span{color:var(--signal); font-weight:700}
+  .summary{font-size:15px; line-height:1.62; color:var(--ink-mid); margin:13px 0 0; max-width:74ch}
+  .summary b{color:var(--ink); font-family:var(--mono); font-weight:500; font-variant-numeric:tabular-nums}
+
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr)}
+  .kpi{padding:14px 16px; border-right:1px solid var(--line)}
+  .kpi:last-child{border-right:0}
+  .kpi__l{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-low)}
+  .kpi__v{font-family:var(--mono); font-size:27px; font-weight:700; letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums; margin-top:7px; line-height:1}
+  .kpi__f{display:flex; align-items:center; gap:8px; margin-top:7px; font-family:var(--mono); font-size:10.5px; color:var(--ink-mid)}
+  .up{color:var(--green)} .down{color:var(--red)}
+
+  .chartb{padding:14px 8px 4px}
+  .legend{display:flex; gap:15px; flex-wrap:wrap; padding:6px 10px 6px; font-family:var(--mono); font-size:10.5px; color:var(--ink-mid)}
+  .legend i{display:inline-block; width:8px; height:8px; margin-right:6px; vertical-align:-1px}
+
+  table.data{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px}
+  table.data th{text-align:left; font-weight:500; font-size:9.5px; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-low); padding:8px 14px; background:var(--deep); border-bottom:1px solid var(--line); white-space:nowrap}
+  table.data td{padding:8px 14px; border-bottom:1px solid var(--line); color:var(--ink-mid)}
+  table.data tr:last-child td{border-bottom:0}
+  table.data tr:hover td{background:var(--panel-2); color:var(--ink)}
+  .num{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink)!important}
+  .idx{color:var(--signal)!important; text-align:right; width:2.2rem}
+  .bar-cell{position:relative}
+  .bar-cell::after{content:''; position:absolute; left:14px; bottom:3px; height:2px;
+    width:var(--w); background:var(--signal); opacity:.55}
+
+  .acts{display:flex}
+  .acts button{flex:1; padding:10px; background:var(--panel); border:0; border-right:1px solid var(--line);
+    cursor:pointer; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-low)}
+  .acts button:last-child{border-right:0}
+  .acts button:hover{background:var(--signal); color:var(--deep)}
+
+  /* --------------------------------------------------- right column = audit */
+  .audit__h{padding:7px 14px; background:var(--panel); border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-mid);
+    display:flex; align-items:center; gap:9px; position:sticky; top:0; z-index:5}
+  .audit__h::before{content:''; width:6px; height:6px; background:var(--signal)}
+  .abox{border-bottom:1px solid var(--line)}
+  .abox__h{display:flex; align-items:center; gap:9px; width:100%; padding:9px 14px; background:none;
+    border:0; cursor:pointer; text-align:left; font-family:var(--mono); font-size:10px;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-low)}
+  .abox__h:hover{color:var(--ink); background:var(--panel)}
+  .abox__h .chev{transition:transform .15s; color:var(--signal)}
+  .abox__h.is-open .chev{transform:rotate(90deg)}
+  .abox__h .tag{margin-left:auto; color:var(--green); letter-spacing:.06em}
+  .abox__h .tag.bad{color:var(--red)}
+  .abox__b{padding:0 0 12px}
+  pre.sql{margin:0; padding:13px 14px; font-family:var(--mono); font-size:11px; line-height:1.68;
+    color:var(--ink-mid); overflow:auto; background:var(--bg); border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line)}
+  .k{color:var(--violet)} .s{color:var(--green)} .f{color:var(--signal)}
+  .chk{display:flex; gap:10px; padding:7px 14px; border-bottom:1px solid var(--line); font-size:11.5px}
+  .chk:last-child{border-bottom:0}
+  .chk__m{flex:none; position:relative; width:11px; height:11px; margin-top:2px}
+  .chk__m::before{content:''; position:absolute; left:2px; top:0; width:4px; height:8px;
+    border:solid var(--green); border-width:0 1.6px 1.6px 0; transform:rotate(42deg)}
+  .chk__m.bad::before,.chk__m.bad::after{content:''; position:absolute; left:4.7px; top:0; width:1.6px;
+    height:10px; background:var(--red); border:0; transform:rotate(45deg)}
+  .chk__m.bad::after{transform:rotate(-45deg)}
+  .chk__t{color:var(--ink-mid); font-family:var(--mono); font-size:11px; display:block}
+  .chk__d{color:var(--ink-low); font-size:10.5px; margin-top:3px; line-height:1.45; font-family:var(--sans); display:block}
+  .srow{display:flex; align-items:center; gap:9px; padding:7px 14px; border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:11px; color:var(--ink-low)}
+  .srow:last-child{border-bottom:0}
+  .srow .dot{width:6px; height:6px; background:var(--line-2); flex:none}
+  .srow.on{color:var(--ink)} .srow.on .dot{background:var(--signal)}
+  .srow .n{margin-left:auto; font-size:10px; color:var(--ink-low)}
+  .note{padding:12px 14px; font-size:12px; color:var(--ink-mid); line-height:1.58}
+  .note b{color:var(--ink); font-weight:600}
+
+  /* ------------------------------------------------------------- status bar */
+  .status{display:flex; align-items:stretch; border-top:1px solid var(--line); background:var(--deep); flex:none}
+  .st{padding:7px 14px; border-right:1px solid var(--line); display:flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-low)}
+  .st:last-child{border-right:0; margin-left:auto}
+  .st b{color:var(--ink-mid); font-weight:400}
+  .st .led{width:7px; height:7px; background:var(--green); flex:none}
+  .st .led.warn{background:var(--signal)} .st .led.bad{background:var(--red)}
+  .st .led.off{background:var(--line-2)}
+
+  /* ------------------------------------------------------------ empty state */
+  .boot{padding:38px 32px; max-width:900px}
+  .boot__h{font-size:30px; font-weight:600; letter-spacing:-.025em; margin:0 0 10px; line-height:1.15}
+  .boot__p{font-size:14.5px; color:var(--ink-mid); line-height:1.62; max-width:56ch; margin:0 0 28px}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line); border-left:1px solid var(--line)}
+  .cell{padding:15px 16px; border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:none; text-align:left; cursor:pointer}
+  .cell:hover{background:var(--panel)}
+  .cell__n{font-family:var(--mono); font-size:9.5px; color:var(--signal); letter-spacing:.11em}
+  .cell__q{font-size:14px; color:var(--ink); margin:7px 0 8px; line-height:1.4}
+  .cell__m{font-family:var(--mono); font-size:10px; color:var(--ink-low)}
+
+  /* ----------------------------------------------------------- thinking etc */
+  .pipe{display:grid; grid-template-columns:repeat(6,1fr); border-top:1px solid var(--line)}
+  .pstep{padding:13px 12px; border-right:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .pstep:last-child{border-right:0}
+  .pstep__n{font-family:var(--mono); font-size:9px; color:var(--ink-low); letter-spacing:.11em}
+  .pstep__t{font-size:12.5px; color:var(--ink-mid); margin:7px 0 9px; font-weight:500; line-height:1.3}
+  .pstep__bar{height:3px; background:var(--line-2)}
+  .pstep.done .pstep__bar{background:var(--green)}
+  .pstep.done .pstep__t{color:var(--ink)}
+  .pstep.now .pstep__bar{background:var(--signal); animation:pulse 1.1s ease-in-out infinite}
+  .pstep.now .pstep__t{color:var(--signal)}
+  .pstep.idle{opacity:.38}
+  .pstep__ms{font-family:var(--mono); font-size:9.5px; color:var(--ink-low); margin-top:7px}
+  @keyframes pulse{50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){.pstep.now .pstep__bar{animation:none}}
+  .logline{display:flex; gap:14px; padding:6px 16px; font-family:var(--mono); font-size:11px;
+    border-bottom:1px solid var(--line); color:var(--ink-low)}
+  .logline b{color:var(--ink-mid); font-weight:400}
+  .logline .t{color:var(--ink-low); min-width:62px}
+
+  .halt{border:1px solid var(--line-2); margin:16px; background:var(--panel)}
+  .halt__h{display:flex; align-items:center; gap:10px; padding:10px 15px; border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase}
+  .halt__h.warn{color:var(--signal); background:rgba(228,240,74,.06)}
+  .halt__h.bad{color:var(--red); background:rgba(240,115,107,.07)}
+  .halt__h::before{content:''; width:8px; height:8px; background:currentColor}
+  .halt__b{padding:16px}
+  .halt__t{font-size:18px; font-weight:600; margin:0 0 9px; line-height:1.3; max-width:34ch}
+  .halt__p{font-size:13.5px; color:var(--ink-mid); line-height:1.62; margin:0; max-width:66ch}
+  code{font-family:var(--mono); font-size:.9em; color:var(--signal)}
+  .opts{margin-top:15px; border-top:1px solid var(--line)}
+  .opts button{display:flex; gap:11px; align-items:center; width:100%; text-align:left; background:none;
+    border:0; border-bottom:1px solid var(--line); padding:10px 0; cursor:pointer;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-mid)}
+  .opts button:last-child{border-bottom:0}
+  .opts button:hover{color:var(--signal)}
+  .opts button::before{content:'>'; color:var(--signal); flex:none}
+</style>
+</head>
+<body>
+
+<nav class="switcher" aria-label="Prototype state switcher">
+  <span class="switcher__tag">C - Vault</span>
+  <button class="sbtn" data-state-btn="empty">empty</button>
+  <button class="sbtn" data-state-btn="kpi-bar">kpi + bar</button>
+  <button class="sbtn" data-state-btn="table-line">table + line</button>
+  <button class="sbtn" data-state-btn="thinking">thinking</button>
+  <button class="sbtn" data-state-btn="rejected">rejected</button>
+  <button class="sbtn" data-state-btn="error">error</button>
+  <span class="switcher__hint">arrow keys to step - sample data, fictional bank</span>
+</nav>
+
+<div class="shell">
+  <header class="strip">
+    <div class="strip__brand"><span class="logo"></span><span class="logo__t">HALCYON</span></div>
+    <div class="strip__ask">
+      <span class="pmt">?</span>
+      <input type="text" placeholder="Ask about customers, branches, onboarding or transactions..." aria-label="Ask a question">
+    </div>
+    <div class="strip__meta">
+      <div class="meta"><span class="meta__l">Access</span><span class="meta__v ok">READ-ONLY</span></div>
+      <div class="meta"><span class="meta__l">Tables</span><span class="meta__v" id="c-ntab">1 / 4</span></div>
+      <div class="meta"><span class="meta__l">Latency</span><span class="meta__v" id="c-lat">74 ms</span></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="left">
+
+      <!-- ============================================================ EMPTY -->
+      <section data-state="empty" hidden>
+        <div class="boot">
+          <h1 class="boot__h">Four tables. Plain English. Verifiable answers.</h1>
+          <p class="boot__p">Halcyon routes your question to the right tables, writes the SQL, runs five
+            safety checks against it, then executes read-only. The query and its verdict stay on screen
+            with the answer.</p>
+          <div class="grid2" id="c-cells"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================== KPI + BAR -->
+      <section data-state="kpi-bar" hidden>
+        <div class="panel">
+          <div class="panel__h"><b>Q-1041</b><span>Aggregate - time series - group by</span><span class="r">10:42:18</span></div>
+          <div class="panel__b">
+            <div class="qline"><span>?</span>Show monthly onboarding applications by customer segment.</div>
+            <p class="summary">Onboarding rose through 2025. Retail took <b>6,575</b> of <b>8,378</b>
+              applications, 78.5% of volume. December was strongest at <b>983</b>. SME grew fastest,
+              up <b>81.4%</b> January to December.</p>
+          </div>
+        </div>
+        <div class="panel"><div class="kpis">
+          <div class="kpi"><div class="kpi__l">Total applications</div><div class="kpi__v">8,378</div><div class="kpi__f"><span class="up">+12.4%</span> vs FY2024</div></div>
+          <div class="kpi"><div class="kpi__l">Peak month</div><div class="kpi__v">983</div><div class="kpi__f">December 2025</div></div>
+          <div class="kpi"><div class="kpi__l">Fastest segment</div><div class="kpi__v">+81.4%</div><div class="kpi__f"><span class="up">SME</span> Jan to Dec</div></div>
+        </div></div>
+        <div class="panel">
+          <div class="panel__h"><span>Fig 1 - applications by month and segment</span><span class="r">onboarding_applications</span></div>
+          <div class="chartb"><div id="c-bars"></div><div class="legend" id="c-legend"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><span>Fig 2 - FY total by segment</span><span class="r">share of volume</span></div>
+          <div class="chartb" style="padding:12px 8px"><div id="c-hbars"></div></div>
+        </div>
+        <div class="acts">
+          <button>Copy answer</button><button>Copy CSV</button><button>Copy SQL</button><button>Export PNG</button>
+        </div>
+      </section>
+
+      <!-- =================================================== TABLE + LINE -->
+      <section data-state="table-line" hidden>
+        <div class="panel">
+          <div class="panel__h"><b>Q-1042</b><span>Rank - join - aggregate</span><span class="r">10:44:02</span></div>
+          <div class="panel__b">
+            <div class="qline"><span>?</span>Show the top five customers by transaction value.</div>
+            <p class="summary">Ardent Logistics leads at <b>&pound;18.74m</b> over <b>4,182</b> transactions.
+              The top five moved <b>&pound;60.86m</b>, 8.2% of FY2025 debit value. Pellworth is the outlier:
+              second by value on the fewest transactions, averaging <b>&pound;15.5k</b> each.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><span>Result set - 5 rows</span><span class="r">transactions + customers + branches</span></div>
+          <table class="data" id="c-table"></table>
+        </div>
+        <div class="panel">
+          <div class="panel__h"><span>Fig 1 - monthly value, top three</span><span class="r">GBP millions</span></div>
+          <div class="chartb"><div id="c-line"></div><div class="legend" id="c-legend2"></div></div>
+        </div>
+        <div class="acts">
+          <button>Copy answer</button><button>Copy CSV</button><button>Copy SQL</button><button>Export PNG</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= THINKING -->
+      <section data-state="thinking" hidden>
+        <div class="panel">
+          <div class="panel__h"><b>Q-1043</b><span>Executing</span><span class="r" id="c-el">255 ms elapsed</span></div>
+          <div class="panel__b"><div class="qline"><span>?</span>Show monthly onboarding applications by customer segment.</div></div>
+        </div>
+        <div class="pipe" id="c-pipe"></div>
+        <div class="panel__h" style="border-top:0">Execution log</div>
+        <div id="c-log"></div>
+      </section>
+
+      <!-- ========================================================= REJECTED -->
+      <section data-state="rejected" hidden>
+        <div class="halt">
+          <div class="halt__h warn">Q-1044 - no answer available</div>
+          <div class="halt__b">
+            <div class="mono" style="font-size:11.5px; color:var(--ink-low); margin-bottom:12px">
+              ? Which customers are likely to default next quarter?</div>
+            <h2 class="halt__t">No credit-risk data exists in this schema.</h2>
+            <p class="halt__p">The question asks for a forecast. Halcyon reports what is recorded, and no
+              connected table holds arrears, defaults or credit scores. The nearest field is
+              <code>customers.risk_band</code> - a static classification set at onboarding. Treating it as
+              a default predictor would be wrong, so no query was generated.</p>
+            <div class="opts">
+              <button>Show the distribution of customers by risk band</button>
+              <button>Which branches have the highest rejection rate?</button>
+              <button>Compare retail and SME onboarding volumes</button>
+            </div>
+          </div>
+        </div>
+        <div class="halt">
+          <div class="halt__h bad">Q-1045 - blocked by validator</div>
+          <div class="halt__b">
+            <div class="mono" style="font-size:11.5px; color:var(--ink-low); margin-bottom:12px">
+              ? Delete all rejected applications from 2025.</div>
+            <h2 class="halt__t">Write statement rejected before execution.</h2>
+            <p class="halt__p">The planner produced a statement beginning <code style="color:var(--red)">DELETE</code>.
+              Check 2 of 5 failed and execution never began. The connection role holds no write grant
+              regardless - two independent controls, both held.</p>
+            <div style="margin-top:15px; border:1px solid var(--line)">
+              <pre class="sql" style="border-top:0"><span style="color:var(--red)">DELETE FROM</span> onboarding_applications
+<span class="k">WHERE</span> decision = <span class="s">'rejected'</span>
+  <span class="k">AND</span> submitted_at &gt;= <span class="s">DATE '2025-01-01'</span>;</pre>
+              <div class="chk"><span class="chk__m bad"></span><span><span class="chk__t">Read-only (SELECT)</span><span class="chk__d">Statement verb is DELETE. Write verbs are not permitted.</span></span></div>
+              <div class="chk"><span class="chk__m"></span><span><span class="chk__t">Role grant</span><span class="chk__d">halcyon_ro holds SELECT only. The write would have failed at the database too.</span></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ ERROR -->
+      <section data-state="error" hidden>
+        <div class="halt">
+          <div class="halt__h bad">Q-1046 - execution failed - 57014</div>
+          <div class="halt__b">
+            <div class="mono" style="font-size:11.5px; color:var(--ink-low); margin-bottom:12px">
+              ? Show every transaction for all customers since 2019 with running balances.</div>
+            <h2 class="halt__t">Valid query. Too heavy to finish.</h2>
+            <p class="halt__p">All five safety checks passed and execution began, then hit the 5,000 ms
+              statement timeout while scanning <b style="color:var(--ink)">2,914,330</b> rows in
+              <code>transactions</code> with a window function over the full range. Nothing was left
+              running. No partial result is shown - a partial answer about totals is worse than none.</p>
+            <div style="margin-top:15px; border:1px solid var(--line); background:var(--bg); padding:11px 14px;
+                        font-family:var(--mono); font-size:11px; color:var(--ink-low); line-height:1.8">
+              <div><span style="color:var(--ink-mid)">code</span>&nbsp; 57014 statement_timeout</div>
+              <div><span style="color:var(--ink-mid)">stage</span>&nbsp; execute (4 of 6)</div>
+              <div><span style="color:var(--ink-mid)">scanned</span>&nbsp; 2,914,330 rows</div>
+              <div><span style="color:var(--ink-mid)">trace</span>&nbsp; 7f2a-9d41-ec03</div>
+            </div>
+            <div class="opts">
+              <button>Narrow to one year - transactions since Jan 2025</button>
+              <button>Aggregate instead - monthly totals by segment</button>
+              <button>Retry with a 30-second timeout</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================================================== RIGHT: audit column -->
+    <aside class="right">
+      <div class="audit__h">Audit - always visible</div>
+
+      <div class="abox">
+        <button class="abox__h is-open" data-drawer="c-sql" aria-expanded="true">
+          <span class="chev">&rsaquo;</span><span>Generated SQL</span><span class="tag" id="c-sqltag">validated</span>
+        </button>
+        <div id="c-sql"><pre class="sql" id="c-sqlbody"></pre></div>
+      </div>
+
+      <div class="abox">
+        <button class="abox__h is-open" data-drawer="c-checks" aria-expanded="true">
+          <span class="chev">&rsaquo;</span><span>Safety checks</span><span class="tag" id="c-chktag">5 / 5</span>
+        </button>
+        <div id="c-checks"></div>
+      </div>
+
+      <div class="abox">
+        <button class="abox__h is-open" data-drawer="c-routing" aria-expanded="true">
+          <span class="chev">&rsaquo;</span><span>Routing</span><span class="tag" id="c-rtag">1 table</span>
+        </button>
+        <div id="c-routing"></div>
+      </div>
+
+      <div class="abox">
+        <button class="abox__h" data-drawer="c-why" aria-expanded="false">
+          <span class="chev">&rsaquo;</span><span>Why this form</span>
+        </button>
+        <div id="c-why" hidden><div class="note" id="c-whybody"></div></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="status">
+    <div class="st"><span class="led"></span>halcyon_ro <b>connected</b></div>
+    <div class="st"><span class="led off"></span>write grant <b>none</b></div>
+    <div class="st">timeout <b>5,000 ms</b></div>
+    <div class="st">row cap <b>1,000</b></div>
+    <div class="st" id="c-stat"><span class="led"></span>ready</div>
+  </footer>
+</div>
+
+<script src="../shared/halcyon-data.js"></script>
+<script src="../shared/charts.js"></script>
+<script src="../shared/switcher.js"></script>
+<script>
+(function(){
+  'use strict';
+  var D=window.HALCYON, C=window.HChart, esc=C.esc;
+  var MONO="'Roboto Mono', ui-monospace, monospace";
+  var TOK={grid:'#23272E',axis:'#333941',text:'#737C87',cats:['#E4F04A','#63D19E','#6FA8DC','#A98CE0']};
+
+  var CELLS=[
+    {q:'Show monthly onboarding applications by customer segment.',m:'1 table - grouped bars'},
+    {q:'Which branches have the highest rejection rate?',           m:'2 tables - ranked table'},
+    {q:'Compare retail and SME onboarding volumes.',                m:'1 table - KPI and bars'},
+    {q:'Show the top five customers by transaction value.',         m:'3 tables - table and line'}
+  ];
+  document.getElementById('c-cells').innerHTML=CELLS.map(function(c,i){
+    return '<button class="cell"><div class="cell__n">0'+(i+1)+'</div><div class="cell__q">'+esc(c.q)+
+           '</div><div class="cell__m">'+esc(c.m)+'</div></button>';}).join('');
+
+  document.getElementById('c-bars').innerHTML=C.groupedBars({
+    width:780,height:236,labels:D.months,series:D.onboarding.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,
+    alt:'Monthly onboarding applications by segment, 2025'});
+  document.getElementById('c-legend').innerHTML=D.onboarding.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  /* Fig 2 exists precisely because the grouped bars hide the small segments -
+     a horizontal total bar is where Private Banking becomes legible again. */
+  document.getElementById('c-hbars').innerHTML=C.hBars({
+    width:780,height:118,
+    rows:D.onboarding.series.map(function(s,i){
+      return {label:s.label, value:s.values.reduce(function(a,b){return a+b;},0), color:TOK.cats[i]};
+    }),
+    track:'#1D2127',colors:TOK.cats,text:TOK.text,valueText:'#E8EBEE',font:MONO,
+    tickFormat:function(v){return v.toLocaleString('en-GB');},
+    alt:'Total FY2025 applications by segment'});
+
+  document.getElementById('c-line').innerHTML=C.lineChart({
+    width:780,height:212,labels:D.months,series:D.txnTrend.series,colors:TOK.cats,
+    grid:TOK.grid,axis:TOK.axis,text:TOK.text,font:MONO,dotFill:'#171A1F',zeroBased:false,
+    tickFormat:function(v){return '\u00a3'+v.toFixed(1)+'m';},
+    alt:'Monthly transaction value for the top three customers'});
+  document.getElementById('c-legend2').innerHTML=D.txnTrend.series.map(function(s,i){
+    return '<span><i style="background:'+TOK.cats[i]+'"></i>'+esc(s.label)+'</span>';}).join('');
+
+  var tc=D.topCustomers, maxV=Math.max.apply(null,tc.rows.map(function(r){return r.value;}));
+  document.getElementById('c-table').innerHTML=
+    '<thead><tr><th class="num">#</th><th>Customer</th><th>Segment</th><th>Branch</th>'+
+    '<th class="num">Txns</th><th class="num">Total value</th></tr></thead><tbody>'+
+    tc.rows.map(function(r){
+      return '<tr><td class="idx">'+r.rank+'</td><td style="color:var(--ink)">'+esc(r.customer)+
+        '</td><td>'+esc(r.segment)+'</td><td>'+esc(r.branch)+'</td><td class="num">'+D.fmt.num(r.txns)+
+        '</td><td class="num bar-cell" style="--w:'+((r.value/maxV)*74).toFixed(1)+'px">'+
+        D.fmt.gbp(r.value)+'</td></tr>';}).join('')+'</tbody>';
+
+  function hi(sql){
+    return esc(sql)
+      .replace(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|ON|AND|OR|AS|DESC|ASC|DATE)\b/g,'<span class="k">$1</span>')
+      .replace(/('[^']*')/g,'<span class="s">$1</span>')
+      .replace(/\b(COUNT|SUM|date_trunc)\b/g,'<span class="f">$1</span>')
+      .replace(/(\$\d)/g,'<span class="f">$1</span>');
+  }
+  function checks(list){return list.map(function(c){
+    return '<div class="chk"><span class="chk__m'+(c.status==='pass'?'':' bad')+'"></span><span>'+
+      '<span class="chk__t">'+esc(c.label)+'</span><span class="chk__d">'+esc(c.detail)+'</span></span></div>';
+  }).join('');}
+  function routing(used){return D.schema.map(function(t){
+    var on=used.indexOf(t.table)>-1;
+    return '<div class="srow'+(on?' on':'')+'"><span class="dot"></span><span>'+esc(t.table)+
+      '</span><span class="n">'+(on?esc(t.rows):'skipped')+'</span></div>';}).join('');}
+
+  var MSS=['12 ms','31 ms','204 ms','8 ms','',''];
+  document.getElementById('c-pipe').innerHTML=D.stages.map(function(s,i){
+    var cls=i<4?'done':i===4?'now':'idle';
+    return '<div class="pstep '+cls+'"><div class="pstep__n">0'+(i+1)+'</div>'+
+      '<div class="pstep__t">'+esc(s.label)+'</div><div class="pstep__bar"></div>'+
+      '<div class="pstep__ms">'+(MSS[i]||(i===4?'running':'queued'))+'</div></div>';}).join('');
+  var LOG=[
+    ['10:44:31.002','parse','intent=aggregate confidence=0.94'],
+    ['10:44:31.014','route','matched onboarding_applications (1 of 4 tables)'],
+    ['10:44:31.045','route','columns submitted_at, segment, application_id'],
+    ['10:44:31.249','plan','draft SQL produced, 2 literals bound'],
+    ['10:44:31.253','guard','5 checks passed, LIMIT 1000 appended'],
+    ['10:44:31.257','exec','BEGIN READ ONLY - role halcyon_ro']
+  ];
+  document.getElementById('c-log').innerHTML=LOG.map(function(l){
+    return '<div class="logline"><span class="t">'+l[0]+'</span><b>'+l[1]+'</b><span>'+esc(l[2])+'</span></div>';
+  }).join('');
+
+  /* The audit column is the point of this direction: it re-binds to every state,
+     including the ones where the verdict is a failure. */
+  var VIEW={
+    'empty':{sql:'-- No query yet.\n-- Ask a question and the generated SQL appears here,\n-- before it runs.',
+      checks:[],tag:'idle',chk:'-',route:[],rt:'none',lat:'-',ntab:'0 / 4',stat:'ready',led:'',
+      why:'<b>Nothing to show yet.</b> Halcyon picks the output form from the shape of the result: one number becomes a KPI, a category over time becomes bars, a ranked list becomes a table.'},
+    'kpi-bar':{sql:D.runs.onboarding.sql,checks:D.runs.onboarding.checks,tag:'validated',chk:'5 / 5',
+      route:['onboarding_applications'],rt:'1 table',lat:'74 ms',ntab:'1 / 4',stat:'answered',led:'',
+      why:'<b>Grouped bars.</b> The result is a count across twelve time buckets and four categories. A line would imply a continuous measure; bars keep it countable. Totals are repeated as horizontal bars underneath because the smallest segment is otherwise unreadable at this scale.'},
+    'table-line':{sql:D.runs.customers.sql,checks:D.runs.customers.checks,tag:'validated',chk:'5 / 5',
+      route:['transactions','customers','branches'],rt:'3 tables',lat:'318 ms',ntab:'3 / 4',stat:'answered',led:'',
+      why:'<b>Table plus line.</b> Five ranked rows with six attributes each is a table - no chart carries that much per row. The line chart answers the follow-up the table provokes: is the lead stable over time?'},
+    'thinking':{sql:D.runs.onboarding.sql,checks:D.runs.onboarding.checks,tag:'validated',chk:'5 / 5',
+      route:['onboarding_applications'],rt:'1 table',lat:'255 ms',ntab:'1 / 4',stat:'executing',led:'warn',
+      why:'<b>Not decided yet.</b> The output form is chosen after the result shape is known, at stage 6.'},
+    'rejected':{sql:'-- Statement rejected. Never sent to the database.\nDELETE FROM onboarding_applications\nWHERE decision = \'rejected\'\n  AND submitted_at >= DATE \'2025-01-01\';',
+      checks:[{label:'Single statement',status:'pass',detail:'One statement'},
+              {label:'Read-only (SELECT)',status:'fail',detail:'Statement verb is DELETE'},
+              {label:'Tables on allow-list',status:'pass',detail:'onboarding_applications'},
+              {label:'Row limit enforced',status:'fail',detail:'Not applicable to a write statement'},
+              {label:'Parameters bound',status:'pass',detail:'2 literals bound'}],
+      tag:'blocked',chk:'3 / 5',route:['onboarding_applications'],rt:'blocked',lat:'-',ntab:'0 / 4',
+      stat:'blocked',led:'bad',
+      why:'<b>No form chosen.</b> Nothing executed, so there is no result to render. The rejected statement is kept on screen because a silent refusal is not auditable.'},
+    'error':{sql:'SELECT\n  t.customer_id,\n  t.posted_at,\n  t.amount_gbp,\n  SUM(t.amount_gbp) OVER (\n    PARTITION BY t.customer_id ORDER BY t.posted_at\n  ) AS running_balance\nFROM transactions t\nWHERE t.posted_at >= DATE \'2019-01-01\'\nLIMIT 1000;',
+      checks:D.runs.onboarding.checks,tag:'timed out',chk:'5 / 5',route:['transactions'],rt:'1 table',
+      lat:'5,000 ms',ntab:'1 / 4',stat:'failed',led:'bad',
+      why:'<b>No form chosen.</b> Execution was cut off at stage 5 of 6, so the result shape was never known. The query itself is shown because it is valid and reusable once narrowed.'}
+  };
+
+  window.HSwitch.init({initial:'kpi-bar',onChange:function(state){
+    var v=VIEW[state]; if(!v) return;
+    document.getElementById('c-sqlbody').innerHTML=hi(v.sql);
+    document.getElementById('c-checks').innerHTML=v.checks.length?checks(v.checks)
+      :'<div class="note" style="color:var(--ink-low)">No statement to check.</div>';
+    document.getElementById('c-routing').innerHTML=routing(v.route);
+    document.getElementById('c-whybody').innerHTML=v.why;
+    var st=document.getElementById('c-sqltag'); st.textContent=v.tag;
+    st.className='tag'+(v.tag==='validated'?'':' bad');
+    var ct=document.getElementById('c-chktag'); ct.textContent=v.chk;
+    ct.className='tag'+(v.chk==='5 / 5'?'':' bad');
+    document.getElementById('c-rtag').textContent=v.rt;
+    document.getElementById('c-lat').textContent=v.lat;
+    document.getElementById('c-ntab').textContent=v.ntab;
+    document.getElementById('c-stat').innerHTML='<span class="led '+v.led+'"></span>'+v.stat;
+  }});
+})();
+</script>
+</body>
+</html>
