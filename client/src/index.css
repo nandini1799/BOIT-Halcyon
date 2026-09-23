@@ -1,0 +1,313 @@
+/* ============================================================================
+ * Halcyon - Tailwind v4 theme
+ * Extracted verbatim from the approved Broadsheet design (_design/.../v2).
+ *
+ * Tailwind v4 has no tailwind.config.js. Tokens are declared in CSS with
+ * @theme, and Tailwind generates the utility classes from them. Drop this file
+ * in as your single stylesheet entry point:
+ *
+ *   src/index.css  ->  this file
+ *   main.tsx       ->  import './index.css'
+ *
+ * Install:
+ *   npm install tailwindcss @tailwindcss/vite
+ *   // vite.config.ts
+ *   import tailwindcss from '@tailwindcss/vite'
+ *   export default defineConfig({ plugins: [react(), tailwindcss()] })
+ *
+ * Naming: every token below maps to a utility. --color-ink becomes text-ink /
+ * bg-ink / border-ink. --text-headline becomes text-headline. No arbitrary
+ * values needed anywhere in the app; if you find yourself writing text-[19px],
+ * the scale is missing something - add it here rather than inline.
+ * ==========================================================================*/
+
+/* Fonts are self-hosted rather than fetched from Google. A reviewer running
+   this on a train should see the design as approved, not a fallback stack —
+   and the type IS the design here. */
+@import "@fontsource-variable/source-serif-4";
+@import "@fontsource-variable/source-sans-3";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@import "tailwindcss";
+
+@theme {
+  /* ---------------------------------------------------------------- colour
+   * Dark only. There is no light theme and the design does not imply one.
+   *
+   * Contrast ratios are stated against --color-paper-hi, the lightest ground
+   * any of these inks sits on, so the quoted figure is the worst case rather
+   * than the flattering one. The floor is 4.5:1 and nothing below it carries
+   * meaning.
+   */
+
+  /* Grounds. Warm espresso, deliberately not blue-black - this is the single
+     decision that stops the UI reading as "generic dark SaaS". */
+  --color-bg:        #13100E;
+  --color-bg-deep:   #0D0B09;  /* masthead, sunk wells, code blocks */
+  --color-paper:     #1B1714;  /* raised surface: cards, figure bodies */
+  --color-paper-hi:  #231D19;  /* hover state on paper */
+
+  /* Rules. This design divides with lines, never with shadows. */
+  --color-rule:      #2E2722;  /* hairline: table rows, card edges */
+  --color-rule-hi:   #453B33;  /* emphasis rule: input underline, table head */
+
+  /* Ink. */
+  --color-ink:       #F5EDE6;  /* 13.4:1 - headlines, figures, primary text */
+  --color-ink-mid:   #B8ABA0;  /*  7.4:1 - body prose, secondary */
+  --color-ink-low:   #948880;  /*  4.8:1 - labels and captions ONLY.
+                                  This is the floor. Do not use it for prose.
+                                  Lifted from #857A70, which cleared 4.5:1 on
+                                  the page ground but fell to 3.98:1 on a card. */
+
+  /* Accent. Exactly one, and it means one thing: "the system is speaking".
+     FT salmon lineage. Never use it for decoration. */
+  --color-salmon:      #FF9E7A;
+  --color-salmon-deep: #C96B4A;  /* pressed state, selection ground */
+
+  /* Data + semantic. These are chart series first, status colours second. */
+  --color-sage:   #8FBF9F;  /* series 2 - also "pass" */
+  --color-slate:  #8FA9C4;  /* series 3 */
+  --color-gold:   #C9A227;  /* series 4. Retuned from a red: at series position
+                               four a red was indistinguishable from salmon at
+                               position one. Red is now errors only. */
+  --color-danger: #E3746E;  /* errors, blocked writes, failed checks.
+                               NEVER used as a chart series. */
+
+  /* ------------------------------------------------------------ typography
+   * Three families, three jobs, no overlap:
+   *   serif - prose and figures. It is what makes the answer readable.
+   *   sans  - UI chrome. Buttons, labels, navigation.
+   *   mono  - numbers, SQL, table names, timestamps. Anything tabular.
+   *
+   * The `... Variable` families are what @fontsource registers for its variable
+   * builds; the static names follow so a non-bundled environment still resolves.
+   */
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans:  'Source Sans 3 Variable', 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:  'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale. Ratio 1.25 (major third) around a 15px body - dense enough for
+     a data tool, calm enough to read. Each step names its job, not its size,
+     so the markup says what it means. */
+  --text-micro:     0.625rem;   /* 10px  - kickers, source lines, axis ticks */
+  --text-label:     0.6875rem;  /* 11px  - card labels, metadata */
+  --text-caption:   0.78125rem; /* 12.5px - captions, rail prose */
+  --text-ui:        0.875rem;   /* 14px  - buttons, table cells */
+  --text-body:      0.9375rem;  /* 15px  - UI body. THE FLOOR for prose. */
+  --text-prose:     1.09375rem; /* 17.5px - standfirst, rail headings */
+  --text-ask:       1.25rem;    /* 20px  - the question input */
+  --text-headline:  1.9375rem;  /* 31px  - answer headline */
+  --text-display:   2.5rem;     /* 40px  - empty-state lede */
+  --text-figure:    2.0625rem;  /* 33px  - pull figures */
+  --text-figure-lg: 2.375rem;   /* 38px  - head-to-head comparison figures */
+
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.5;
+  --leading-prose:   1.62;  /* the standfirst measure. Do not tighten. */
+
+  --tracking-tightest: -0.03em;  /* large figures */
+  --tracking-tighter:  -0.025em; /* display */
+  --tracking-tight:    -0.018em; /* headline */
+  --tracking-wide:      0.09em;  /* mono labels */
+  --tracking-wider:     0.13em;  /* uppercase section heads */
+
+  /* ---------------------------------------------------------------- space
+   * 4px base. The design only actually uses a handful of steps; they are all
+   * listed so nobody has to invent one mid-build.
+   */
+  --spacing: 0.25rem;
+
+  /* ---------------------------------------------------------------- shape
+   * Zero radius everywhere. This is a ruled-ledger aesthetic: corners are
+   * square because printed rules are square. One token so the intent is
+   * explicit rather than accidental.
+   */
+  --radius-none: 0px;
+
+  /* ---------------------------------------------------------------- layout */
+  --container-measure: 62ch;    /* max prose width. Longer hurts readability. */
+  --container-headline: 22ch;   /* headlines wrap at ~22 characters */
+  --container-sheet: 1180px;    /* the page's content column */
+  --container-rail: 316px;      /* the right-hand evidence rail */
+
+  /* ---------------------------------------------------------------- motion
+   * There is almost none, on purpose. A financial tool that animates is a
+   * financial tool that feels unserious. Only state changes move.
+   */
+  --ease-out-quiet: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+}
+
+/* ============================================================================
+ * Base layer - the handful of global truths.
+ * ==========================================================================*/
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every figure in this product is tabular. This is the brand's strongest
+     signature and it is inherited from banking's own printed conventions. */
+  .tabular, td.num, th.num, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  ::selection {
+    background-color: var(--color-salmon-deep);
+    color: #fff;
+  }
+
+  /* WCAG 2.2: focus must be visible and never removed. */
+  :focus-visible {
+    outline: 2px solid var(--color-salmon);
+    outline-offset: 2px;
+  }
+
+  /* Respect the OS setting. Non-negotiable. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================================
+ * Component layer - the four patterns worth centralising.
+ * Everything else should be composed from utilities at the call site.
+ * ==========================================================================*/
+@layer components {
+  /* The filed-story headline. */
+  .hl-headline {
+    font-family: var(--font-serif);
+    font-size: var(--text-headline);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    max-width: var(--container-headline);
+    text-wrap: pretty;
+  }
+
+  /* The standfirst: the one paragraph that actually answers the question. */
+  .hl-standfirst {
+    font-family: var(--font-serif);
+    font-size: var(--text-prose);
+    line-height: var(--leading-prose);
+    color: var(--color-ink-mid);
+    max-width: var(--container-measure);
+    text-wrap: pretty;
+  }
+  .hl-standfirst b {
+    color: var(--color-ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Uppercase mono label. Used for every section head and card title. */
+  .hl-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+    color: var(--color-ink-low);
+  }
+
+  /* A pull figure. */
+  .hl-figure {
+    font-family: var(--font-serif);
+    font-size: var(--text-figure);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tightest);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+}
+
+/* ============================================================================
+ * Radix state transitions.
+ *
+ * shadcn normally reaches for tailwindcss-animate here. The design needs
+ * exactly two movements — a drawer sliding and a ground fading — so a whole
+ * animation vocabulary would be more dependency than the motion budget can
+ * justify. Both are gated behind the reduced-motion rule in the base layer.
+ * ==========================================================================*/
+@keyframes hl-fade-in  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes hl-fade-out { from { opacity: 1 } to { opacity: 0 } }
+@keyframes hl-in-left   { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+@keyframes hl-out-left  { from { transform: translateX(0) } to { transform: translateX(-100%) } }
+@keyframes hl-in-right  { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes hl-out-right { from { transform: translateX(0) } to { transform: translateX(100%) } }
+@keyframes hl-in-bottom  { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes hl-out-bottom { from { transform: translateY(0) } to { transform: translateY(100%) } }
+
+@utility hl-overlay {
+  &[data-state='open']   { animation: hl-fade-in 180ms var(--ease-out-quiet) }
+  &[data-state='closed'] { animation: hl-fade-out 150ms var(--ease-out-quiet) }
+}
+
+@utility hl-slide-left {
+  &[data-state='open']   { animation: hl-in-left 240ms var(--ease-out-quiet) }
+  &[data-state='closed'] { animation: hl-out-left 200ms var(--ease-out-quiet) }
+}
+
+@utility hl-slide-right {
+  &[data-state='open']   { animation: hl-in-right 240ms var(--ease-out-quiet) }
+  &[data-state='closed'] { animation: hl-out-right 200ms var(--ease-out-quiet) }
+}
+
+@utility hl-slide-bottom {
+  &[data-state='open']   { animation: hl-in-bottom 240ms var(--ease-out-quiet) }
+  &[data-state='closed'] { animation: hl-out-bottom 200ms var(--ease-out-quiet) }
+}
+
+/* ============================================================================
+ * Recharts bridge.
+ * Recharts renders inline SVG and will not pick up Tailwind classes on its
+ * internals, so its chrome is themed here once. Keep this in sync with the
+ * chart colour order below.
+ *
+ *   series order: salmon, sage, slate, gold
+ *   Pass them explicitly:
+ *     const SERIES = ['#FF9E7A', '#8FBF9F', '#8FA9C4', '#C9A227'];
+ *
+ * Do not add gradients, glows or shadows to charts. The mock deliberately
+ * contains nothing Recharts cannot reproduce, so the port stays mechanical.
+ * ==========================================================================*/
+.recharts-cartesian-grid line {
+  stroke: var(--color-rule);
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--color-rule-hi);
+}
+.recharts-cartesian-axis-tick-value {
+  fill: var(--color-ink-low);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--color-bg-deep) !important;
+  border: 1px solid var(--color-rule-hi) !important;
+  border-radius: var(--radius-none) !important;
+  font-family: var(--font-mono) !important;
+  font-size: var(--text-label) !important;
+  color: var(--color-ink) !important;
+}
+.recharts-legend-item-text {
+  color: var(--color-ink-mid) !important;
+  font-size: var(--text-caption);
+}
