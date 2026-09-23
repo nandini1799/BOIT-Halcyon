@@ -32,40 +32,42 @@ Allow the user to copy the answer, data, or visualisation output.
 Handle invalid questions and technical errors gracefully.
 
 The candidate should create their own sample banking data. At least two logically distinct datasets should be included, for example:
-* Customer and branch information
-* Onboarding applications
-* Transactions
-* Engineering expectations
-The implementation should demonstrate:
-* Strong TypeScript usage
-* Clear frontend and backend separation
-* Modular and maintainable code
-* Input validation
-* Safe database access
-* Proper error handling
-* Structured API responses
-* Basic security awareness
-* Sensible use of AI-generated code
-The candidate should not allow unrestricted AI-generated SQL to execute without validation or control.
+
+- Customer and branch information
+- Onboarding applications
+- Transactions
+- Engineering expectations
+  The implementation should demonstrate:
+- Strong TypeScript usage
+- Clear frontend and backend separation
+- Modular and maintainable code
+- Input validation
+- Safe database access
+- Proper error handling
+- Structured API responses
+- Basic security awareness
+- Sensible use of AI-generated code
+  The candidate should not allow unrestricted AI-generated SQL to execute without validation or control.
 
 Submission
 At the end of the session, the candidate must provide access to the repository containing:
-* Complete source code
-* Setup instructions
-* .env.example
-* Database schema or seed script
-A brief README covering:
-* Architecture
-* Assumptions
-* Completed functionality
-* Known limitations
-* How the solution would be productionised
-* At least one meaningful automated test
-* Clear commit history
-* The candidate should also disclose which AI development tools were used and briefly explain which architectural and implementation decisions were made personally.
-*Please ensure the candidate shares their screen throughout the exercise and creates the repository at the beginning of the session.*
-</breif>
+
+- Complete source code
+- Setup instructions
+- .env.example
+- Database schema or seed script
+  A brief README covering:
+- Architecture
+- Assumptions
+- Completed functionality
+- Known limitations
+- How the solution would be productionised
+- At least one meaningful automated test
+- Clear commit history
+- The candidate should also disclose which AI development tools were used and briefly explain which architectural and implementation decisions were made personally.
+  Please ensure the candidate shares their screen throughout the exercise and creates the repository at the beginning of the session.
+  </breif>
 
 <tip>
-let's do assessment considering it banking domain requirement
+do assessment considering it banking domain requirement
 </tip>
