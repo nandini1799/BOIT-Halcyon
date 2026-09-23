@@ -1,0 +1,44 @@
+{
+  "name": "halcyon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Halcyon — a conversational data analyst for a fictional retail and commercial bank",
+  "packageManager": "pnpm@10.31.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module",
+  "scripts": {
+    "setup": "pnpm install && cp -n .env.example .env || true && pnpm db:setup",
+    "db:setup": "pnpm --filter @halcyon/server db:setup",
+    "db:migrate": "pnpm --filter @halcyon/server db:migrate",
+    "db:seed": "pnpm --filter @halcyon/server db:seed",
+    "db:reset": "pnpm --filter @halcyon/server db:reset",
+    "db:verify": "pnpm --filter @halcyon/server db:verify",
+    "db:profile": "pnpm --filter @halcyon/server db:profile",
+    "dev": "pnpm --parallel --filter @halcyon/server --filter @halcyon/client dev",
+    "build": "pnpm --filter @halcyon/shared build && pnpm --filter @halcyon/server build && pnpm --filter @halcyon/client build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @halcyon/client test:e2e"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@embedded-postgres/darwin-arm64",
+      "@embedded-postgres/darwin-x64",
+      "@embedded-postgres/linux-arm",
+      "@embedded-postgres/linux-arm64",
+      "@embedded-postgres/linux-ia32",
+      "@embedded-postgres/linux-ppc64",
+      "@embedded-postgres/linux-x64",
+      "@embedded-postgres/windows-x64"
+    ]
+  }
+}
