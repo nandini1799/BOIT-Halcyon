@@ -1,0 +1,1 @@
+ALTER TABLE "query_log" ADD COLUMN "failure_code" text;
